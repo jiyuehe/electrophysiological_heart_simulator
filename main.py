@@ -75,7 +75,7 @@ elif do_flag == 0:
     action_potential = np.load('result/action_potential.npy')
     electrogram_unipolar = np.load('result/electrogram_unipolar.npy')
 
-debug_plot = 1
+debug_plot = 0
 if debug_plot == 1:
     # action potential
     plt.figure()
