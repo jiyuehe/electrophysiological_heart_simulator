@@ -75,7 +75,7 @@ elif do_flag == 0:
     action_potential = np.load('result/action_potential.npy')
     electrogram_unipolar = np.load('result/electrogram_unipolar.npy')
 
-debug_plot = 0
+debug_plot = 1
 if debug_plot == 1:
     # action potential
     plt.figure()
@@ -103,10 +103,13 @@ if debug_plot == 1:
 # create phase from action potential
 do_flag = 1 # 1: compute, 0: load existing result
 if do_flag == 1:
-    
     action_potential_phase = np.zeros_like(action_potential)
     activation_phase = np.zeros_like(action_potential)
     for id in range(action_potential.shape[0]):
+        do_flag = 1
+        if do_flag == 1 and (id % (action_potential.shape[0]//5)) == 0:
+            print(f'compute phase {id/action_potential.shape[0]*100:.1f}%')
+
         action_potential_phase[id,:], activation_phase[id,:] = codes.create_phase.execute(action_potential[id,:], v_gate)
     np.save('result/action_potential_phase.npy', action_potential_phase)
 elif do_flag == 0:
@@ -141,25 +144,25 @@ if do_flag == 1:
         map_color[n] = color
     codes.display_activation_movie.execute_on_mesh(vertex, face, map_color)
 
-    # activation movie display on volume using plotly
-    do_flag = 0
-    if do_flag == 1:
-        movie_data = action_potential_phase[:,0:50] # if too large of data, will not display
-        data_min = np.min(movie_data)
-        data_max = np.max(movie_data)
-        data_threshold = data_min
-        map_color = {}
-        n_time = movie_data.shape[1]
-        for n in range(n_time):
-            if (n % (n_time//5)) == 0:
-                print(f'compute color map {n/n_time*100:.1f}%')
-            data = movie_data[:, n]
-            color = codes.convert_data_to_color.execute(data, data_min, data_max, data_threshold)
-            map_color[n] = color
-        codes.display_activation_movie.execute_on_volume(voxel, map_color)
+# activation movie display on volume using plotly, display using a browser
+do_flag = 0
+if do_flag == 1:
+    movie_data = action_potential_phase[:,0:50] # if too large of data, will not display
+    data_min = np.min(movie_data)
+    data_max = np.max(movie_data)
+    data_threshold = data_min
+    map_color = {}
+    n_time = movie_data.shape[1]
+    for n in range(n_time):
+        if (n % (n_time//5)) == 0:
+            print(f'compute color map {n/n_time*100:.1f}%')
+        data = movie_data[:, n]
+        color = codes.convert_data_to_color.execute(data, data_min, data_max, data_threshold)
+        map_color[n] = color
+    codes.display_activation_movie.execute_on_volume(voxel, map_color)
 
 # activation phase movie display on volume using matplotlib, with option to save as mp4
-do_flag = 1
+do_flag = 0
 if do_flag == 1: 
     save_flag = 1
     codes.display_activation_movie.save_as_mp4(save_flag, action_potential_phase, voxel)
