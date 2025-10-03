@@ -23,7 +23,7 @@ voxel_flag = vertex_flag[vertex_for_each_voxel]
 # simulation parameters
 # --------------------------------------------------
 dt = 0.05 # ms. if dt is not small enough, simulation will result nan. Generally, if c <= 1.0, can use dt = 0.05
-t_final = 350 # ms. NOTE: need to be at least long enough to have two pacings, or cannot compute phase from action potential
+t_final = 700 # ms. NOTE: need to be at least long enough to have two pacings, or cannot compute phase from action potential
 pacing_start_time = 1 # ms
 pacing_cycle_length = 250 # ms
 
@@ -48,7 +48,7 @@ elif model_flag == 2: # Aliev–Panfilov
     v_gate = 0.13
     parameter['v_gate_voxel'] = np.ones(n_voxel) * v_gate
 #%%
-rotor_flag = 0 # 0: focal arrhythmia. 1: rotor arrhythmia via s1-s2 pacing
+rotor_flag = 1 # 0: focal arrhythmia. 1: rotor arrhythmia via s1-s2 pacing
 
 # %% 
 # compute simulation
@@ -135,7 +135,8 @@ if debug_plot == 1:
 
 # %%
 # activation activation movie display using plotly, display using a browser
-do_flag = 1
+# NOTE: if simulation is too long, it will not display, for example, 1000 ms simulation will display a blank page
+do_flag = 0
 if do_flag == 1:
     # activation activation movie display on mesh using plotly
     movie_data = action_potential_phase[voxel_for_each_vertex,:]
@@ -169,11 +170,18 @@ if do_flag == 1:
         map_color[n] = color
     codes.display_activation_movie.execute_on_volume(voxel, map_color)
 
+# activation phase movie display on vertex using matplotlib, with option to save as mp4
+do_flag = 1
+if do_flag == 1: 
+    save_flag = 1 # 1: save movie as mp4. 0: do not save movie
+    action_potential_phase_vertex = action_potential_phase[voxel_for_each_vertex,:]
+    codes.display_activation_movie.execute_on_vertex_save_as_mp4(save_flag, action_potential_phase_vertex, vertex)
+
 # activation phase movie display on volume using matplotlib, with option to save as mp4
 do_flag = 0
 if do_flag == 1: 
-    save_flag = 0 # 1: save movie as mp4. 0: do not save movie
-    codes.display_activation_movie.save_as_mp4(save_flag, action_potential_phase, voxel)
+    save_flag = 1 # 1: save movie as mp4. 0: do not save movie
+    codes.display_activation_movie.execute_on_voxel_save_as_mp4(save_flag, action_potential_phase, voxel)
 
 debug_plot = 0
 if debug_plot == 1: # cycle length histogram

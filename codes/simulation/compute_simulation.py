@@ -111,7 +111,7 @@ def execute_CPU_parallel(neighbor_id_2d, voxel_flag, n_voxel, dt, t_final, pacin
             J_stim.fill(0.0) # reset values to 0s
             J_stim[s1_pacing_voxel_id] = pacing_signal[t]
         elif rotor_flag == 1:
-            pacing_duration = 10/dt # 10 ms
+            pacing_duration = 10 / dt # 10 ms
 
             # s1 pacing
             J_stim.fill(0.0) # reset values to 0s
@@ -120,9 +120,9 @@ def execute_CPU_parallel(neighbor_id_2d, voxel_flag, n_voxel, dt, t_final, pacin
                 J_stim[s1_pacing_voxel_id] = 20
 
             # s2 pacing
-            s2_t = 193
+            s2_t = 205 / dt # ms
             if t >= s2_t and t <= s2_t + pacing_duration:
-                J_stim[s1_pacing_voxel_id] = 20
+                J_stim[s2_pacing_voxel_id] = 20
 
         u_next, h_next = compute_voxel(u_current, h_current, P_2d, neighbor_id_2d_2, J_stim, dt, Delta, model_flag)
         
