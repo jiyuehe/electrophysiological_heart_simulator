@@ -167,7 +167,7 @@ do_flag = 0
 if do_flag == 1: 
     save_flag = 1
     codes.display_activation_movie.save_as_mp4(save_flag, action_potential_phase, voxel)
-#%%
+
 # local activation time map
 action_potential_mesh = action_potential[voxel_for_each_vertex,:]
 t_start = 1
