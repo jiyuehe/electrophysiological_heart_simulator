@@ -8,3 +8,6 @@ Examples of simulated action potential:
 
 Examples of simulated electrogram:  
 ![Demo](result/0_demo/unipolar_electrogram.png)  
+
+Ecample of a local activation time map:
+![Demo](result/0_demo/lat_map.png)  
