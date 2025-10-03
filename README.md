@@ -1,14 +1,14 @@
 This is an electrophysiological heart simulator based on Mitchell-Schaeffer equations. Written in Python. It can reproduce patient-specific arrhythmias.  
 
 An example of arrhythmia simulation:  
-![Demo](result/0_demo/activation_movie.gif)  
-<img src="result/0_demo/activation_movie.gif" alt="Demo" width="400" />
+<!-- ![Demo](result/0_demo/activation_movie.gif)   -->
+<img src="result/0_demo/activation_movie.gif" alt="Demo" width="400" />  
 
 Examples of simulated action potential:  
-![Demo](result/0_demo/action_potential.png)  
+<img src="result/0_demo/action_potential.png" alt="Demo" width="400" />  
 
 Examples of simulated electrogram:  
-![Demo](result/0_demo/unipolar_electrogram.png)  
+<img src="result/0_demo/unipolar_electrogram.png" alt="Demo" width="400" />  
 
 Ecample of a local activation time map:
-![Demo](result/0_demo/lat.png)  
+<img src="result/0_demo/lat.png" alt="Demo" width="400" />  
