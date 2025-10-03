@@ -127,10 +127,10 @@ def execute_CPU_parallel(neighbor_id_2d, voxel_flag, n_voxel, dt, t_final, P_2d,
                     action_potential_s2_t = sim_u_voxel[:,int(s2_t*dt)-1] # the current values are not saved yet, so check the previous time frame
                     h_s2_t = sim_h_voxel[:,int(s2_t*dt)-1]
 
-                    ap_min = 0.002058
-                    ap_max = 0.026245
-                    h_min = 0.221531
-                    h_max = 0.335100
+                    ap_min = 0.01
+                    ap_max = 0.02
+                    h_min = 0.23
+                    h_max = 0.30
                     id1 = np.where((action_potential_s2_t >= ap_min) & (action_potential_s2_t <= ap_max))[0]
                     id2 = np.where((h_s2_t >= h_min) & (h_s2_t <= h_max))[0]
                     s2_pacing_voxel_id = np.intersect1d(id1, id2)

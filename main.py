@@ -26,11 +26,11 @@ dt = 0.05 # ms. if dt is not small enough, simulation will result nan. Generally
 t_final = 1000 # ms. NOTE: need to be at least long enough to have two pacings, or cannot compute phase from action potential
 pacing_start_time = 1 # ms
 pacing_cycle_length = 250 # ms
+rotor_flag = 1 # 0: focal arrhythmia. 1: rotor arrhythmia via s1-s2 pacing
+model_flag = 1 # 1: Mitchell-Schaeffer, 2: Aliev–Panfilov
 
 # parameters of the heart model
 n_voxel = voxel.shape[0] 
-
-model_flag = 1 # 1: Mitchell-Schaeffer, 2: Aliev–Panfilov
 if model_flag == 1: # Mitchell-Schaeffer
     parameter = {}
     parameter['tau_in_voxel'] = np.ones(n_voxel) * 0.3
@@ -47,8 +47,6 @@ elif model_flag == 2: # Aliev–Panfilov
     parameter['c_voxel'] = c * np.ones(n_voxel)
     v_gate = 0.13
     parameter['v_gate_voxel'] = np.ones(n_voxel) * v_gate
-
-rotor_flag = 1 # 0: focal arrhythmia. 1: rotor arrhythmia via s1-s2 pacing
 
 # %% 
 # compute simulation
