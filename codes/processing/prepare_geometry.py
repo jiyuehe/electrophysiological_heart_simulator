@@ -55,5 +55,3 @@ def execute(data_path):
             )
         ])
         fig.show()
-
-

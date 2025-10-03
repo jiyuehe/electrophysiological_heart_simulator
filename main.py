@@ -23,7 +23,7 @@ voxel, neighbor_id_2d, Delta, voxel_for_each_vertex, vertex, face, vertex_flag =
 # --------------------------------------------------
 dt = 0.05 # ms. if dt is not small enough, simulation will result nan. Generally, if c <= 1.0, can use dt = 0.05
 t_final = 350 # ms. NOTE: need to be at least long enough to have two pacings, or cannot compute phase from action potential
-pacing_voxel_id = np.where(vertex_flag == 1)[0]
+pacing_voxel_id = voxel_for_each_vertex[np.where(vertex_flag == 1)[0]]
 pacing_start_time = 1 # ms
 pacing_cycle_length = 250 # ms
 
@@ -170,7 +170,7 @@ if do_flag == 1:
     codes.display_activation_movie.execute_on_volume(voxel, map_color)
 
 # activation phase movie display on volume using matplotlib, with option to save as mp4
-do_flag = 1
+do_flag = 0
 if do_flag == 1: 
     save_flag = 0 # 1: save movie as mp4. 0: do not save movie
     codes.display_activation_movie.save_as_mp4(save_flag, action_potential_phase, voxel)
