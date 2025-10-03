@@ -221,7 +221,7 @@ if __name__ == "__main__":
     os.chdir(script_dir) # change the working directory
     data_path = script_dir + "/data/"
 
-    voxel, neighbor_id_2d, Delta, voxel_for_each_vertex, vertex, face, vertex_flag = codes.processing.prepare_geometry.execute(data_path)
+    voxel, neighbor_id_2d, Delta, voxel_for_each_vertex, vertex_for_each_voxel, vertex, face, vertex_flag = codes.processing.prepare_geometry.execute(data_path)
     vertex_color = np.ones((len(vertex_flag), 3))  # shape (11, 3), all ones
     selector = MeshSelector(vertex, face, data_path, vertex_flag, vertex_color)
 

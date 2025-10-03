@@ -174,7 +174,7 @@ def execute_on_vertex_save_as_mp4(save_flag, action_potential_phase_vertex, vert
 
     fig = plt.figure(figsize=(10, 8))
     ax = plt.axes(projection='3d')
-    ax.view_init(elev = -50, azim = 100)
+    ax.view_init(elev = 52, azim = -106)
     plot_handle = ax.scatter(vertex[:, 0], vertex[:, 1], vertex[:, 2], c=map_color[0], s=2, alpha=1)
     ax.set_xlabel('X')
     ax.set_ylabel('Y')

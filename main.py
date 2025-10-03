@@ -23,7 +23,7 @@ voxel_flag = vertex_flag[vertex_for_each_voxel]
 # simulation parameters
 # --------------------------------------------------
 dt = 0.05 # ms. if dt is not small enough, simulation will result nan. Generally, if c <= 1.0, can use dt = 0.05
-t_final = 700 # ms. NOTE: need to be at least long enough to have two pacings, or cannot compute phase from action potential
+t_final = 1000 # ms. NOTE: need to be at least long enough to have two pacings, or cannot compute phase from action potential
 pacing_start_time = 1 # ms
 pacing_cycle_length = 250 # ms
 
@@ -173,8 +173,8 @@ if do_flag == 1:
 # activation phase movie display on vertex using matplotlib, with option to save as mp4
 do_flag = 1
 if do_flag == 1: 
-    save_flag = 1 # 1: save movie as mp4. 0: do not save movie
-    action_potential_phase_vertex = action_potential_phase[voxel_for_each_vertex,:]
+    save_flag = 0 # 1: save movie as mp4. 0: do not save movie
+    action_potential_phase_vertex = action_potential_phase[voxel_for_each_vertex,180:]
     codes.display_activation_movie.execute_on_vertex_save_as_mp4(save_flag, action_potential_phase_vertex, vertex)
 
 # activation phase movie display on volume using matplotlib, with option to save as mp4
