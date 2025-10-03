@@ -15,6 +15,10 @@ class MeshSelector:
         self.vertex_flag = vertex_flag
         self.vertex_color = vertex_color
         
+        # Define color map for different flags
+        color_map = ['red', 'green', 'blue', 'yellow', 'cyan', 'magenta', 'orange', 'purple']
+        self.color_map = color_map
+
         self.selection_polygon = []
         self.is_selecting = False
         self.selection_mode = False # Toggle between rotate and select modes
@@ -29,6 +33,9 @@ class MeshSelector:
             triangles=self.faces,
             linewidth=0.2, edgecolor='gray', alpha=0, color='white'
         )
+
+        self.flagged_scatter = self.ax.scatter([], [], [], c=[], s=5, depthshade=False, marker='.')
+
         self.ax.set_xlabel('X')
         self.ax.set_ylabel('Y')
         self.ax.set_zlabel('Z')
@@ -51,11 +58,6 @@ class MeshSelector:
         ax_save = plt.axes([0.81, 0.90, 0.08, 0.04])
         self.btn_save = Button(ax_save, 'Save')
         self.btn_save.on_clicked(self.save_selection)
-        
-        # Add rotate X+ button
-        ax_rotate_x = plt.axes([0.7, 0.90, 0.08, 0.04])
-        self.btn_rotate_x = Button(ax_rotate_x, 'Rotate X+')
-        self.btn_rotate_x.on_clicked(self.rotate_x_plus)
 
         # Instructions
         self.fig.text(0.5, 0.02, 
@@ -67,33 +69,22 @@ class MeshSelector:
             bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.8))
         
         plt.show()
-    
-    def rotate_x_plus(self, event):
-        """Rotate the view +2 degrees around the X-axis."""
-        elev = self.ax.elev + 2  # increment elevation
-        azim = self.ax.azim      # keep current azimuth
-        self.ax.view_init(elev=elev, azim=azim)
-        self.fig.canvas.draw_idle()
-        print(f"Rotated X by +2° → Elevation: {elev}, Azimuth: {azim}")
 
     def update_display(self):
         # Highlight selected vertices (where flag > 0) with different colors
-        unique_flags = np.unique(self.vertex_flag[self.vertex_flag > 0])
-        if len(unique_flags) > 0:
-            # Define color map for different flags
-            colors = ['red', 'green', 'blue', 'yellow', 'cyan', 'magenta', 'orange', 'purple']
-            
-            for i, flag_value in enumerate(unique_flags):
-                flag_indices = np.where(self.vertex_flag == flag_value)[0]
-                selected_verts = self.vertices[flag_indices]
-                color = colors[i % len(colors)]  # Cycle through colors if more than 8 flags
-                
-                self.ax.scatter(selected_verts[:, 0], selected_verts[:, 1], selected_verts[:, 2],
-                    c=color, s=5, alpha=1.0, depthshade=False, label=f'Flag {flag_value}: {len(flag_indices)}')
-            self.ax.legend()
-        
-        # self.fig.canvas.draw_idle()
-    
+        flagged_idx = np.where(self.vertex_flag > 0)[0]
+        if len(flagged_idx) == 0:
+            self.flagged_scatter._offsets3d = ([], [], [])
+            self.flagged_scatter.set_facecolor([])
+        else:
+            verts = self.vertices[flagged_idx]
+            print(verts)
+            colors = []
+            for idx in flagged_idx:
+                colors.append(self.color_map[(self.vertex_flag[idx]-1) % len(self.color_map)])
+            self.flagged_scatter._offsets3d = (verts[:,0], verts[:,1], verts[:,2])
+            self.flagged_scatter.set_color(colors)
+
     def on_press(self, event):
         # Handle mouse press events
         if event.inaxes != self.ax:
