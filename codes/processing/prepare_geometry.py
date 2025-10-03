@@ -15,7 +15,9 @@ def execute(data_path):
     vertex = mat_data['data']['geometry'][0,0]['edited'][0,0]['vertex'][0,0] # xyz coordinates of each vertex
     face = mat_data['data']['geometry'][0,0]['edited'][0,0]['face'][0,0].astype(np.int32) -1 # -1 is to convert Matlab 1-based index to Python 0-based index
 
-    return voxel, neighbor_id_2d, Delta, voxel_for_each_vertex, vertex, face
+    vertex_flag = np.load(data_path + "vertex_flag.npy")
+
+    return voxel, neighbor_id_2d, Delta, voxel_for_each_vertex, vertex, face, vertex_flag
 
     debug_plot = 0
     if debug_plot == 1:

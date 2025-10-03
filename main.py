@@ -17,7 +17,7 @@ os.chdir(script_dir) # change the working directory
 # load the .mat data file
 # --------------------------------------------------
 data_path = script_dir + "/data/"
-voxel, neighbor_id_2d, Delta, voxel_for_each_vertex, vertex, face = codes.processing.prepare_geometry.execute(data_path)
+voxel, neighbor_id_2d, Delta, voxel_for_each_vertex, vertex, face, vertex_flag = codes.processing.prepare_geometry.execute(data_path)
 
 # %% 
 # simulation parameters
