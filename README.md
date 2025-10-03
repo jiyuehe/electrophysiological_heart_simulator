@@ -10,5 +10,8 @@ Examples of simulated action potential:
 Examples of simulated electrogram:  
 <img src="result/0_demo/unipolar_electrogram.png" alt="Demo" width="400" />  
 
-Ecample of a local activation time map:  
+Example of a local activation time map:  
 <img src="result/0_demo/lat.png" alt="Demo" width="400" />  
+
+A user interface for assigning vertex flag
+<img src="result/0_demo/ui_assign_vertex_flag.png" alt="Demo" width="400" />  
