@@ -3,6 +3,7 @@ import numpy as np
 import plotly.graph_objects as go # pip install plotly, pip install --upgrade nbformat. For 3D interactive plot: triangular mesh, and activation movie
 import plotly.io as pio
 pio.renderers.default = "browser" # simulation result mesh display in internet browser
+import os
 
 def execute(data_path):
     mat_data = scipy.io.loadmat(data_path + "heart_example.mat")
@@ -15,7 +16,10 @@ def execute(data_path):
     vertex = mat_data['data']['geometry'][0,0]['edited'][0,0]['vertex'][0,0] # xyz coordinates of each vertex
     face = mat_data['data']['geometry'][0,0]['edited'][0,0]['face'][0,0].astype(np.int32) -1 # -1 is to convert Matlab 1-based index to Python 0-based index
 
-    vertex_flag = np.load(data_path + "vertex_flag.npy")
+    if os.path.exists(data_path + 'vertex_flag.npy'): # file exist
+        vertex_flag = np.load(data_path + 'vertex_flag.npy')
+    else: # file do not exist
+        vertex_flag = np.zeros(len(vertex), dtype=int)
 
     return voxel, neighbor_id_2d, Delta, voxel_for_each_vertex, vertex, face, vertex_flag
 

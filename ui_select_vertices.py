@@ -1,14 +1,19 @@
+import codes
 import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.path import Path
+# from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+# from mpl_toolkits.mplot3d import Axes3D
 
+#%%
 class MeshSelector:
-    def __init__(self, vertices, faces, data_path, vertex_flag):
+    def __init__(self, vertices, faces, data_path, vertex_flag, vertex_color):
         self.vertices = vertices
         self.faces = faces
         self.data_path = data_path
         self.vertex_flag = vertex_flag
+        self.vertex_color = vertex_color
         
         self.selection_polygon = []
         self.is_selecting = False
@@ -19,8 +24,18 @@ class MeshSelector:
         self.ax = self.fig.add_subplot(111, projection='3d')
         
         # Plot the mesh
-        self.plot_mesh()
-        
+        self.mesh = self.ax.plot_trisurf(
+            self.vertices[:, 0], self.vertices[:, 1], self.vertices[:, 2],
+            triangles=self.faces,
+            linewidth=0.2, edgecolor='gray', alpha=0, color='white'
+        )
+        self.ax.set_xlabel('X')
+        self.ax.set_ylabel('Y')
+        self.ax.set_zlabel('Z')
+        codes.set_axes_equal.execute(self.ax)
+        self.ax.set_title('3D Mesh Vertex Selection Tool')
+        self.update_display()
+
         # Connect mouse events
         self.fig.canvas.mpl_connect('button_press_event', self.on_press)
         self.fig.canvas.mpl_connect('button_release_event', self.on_release)
@@ -37,31 +52,31 @@ class MeshSelector:
         self.btn_save = Button(ax_save, 'Save')
         self.btn_save.on_clicked(self.save_selection)
         
+        # Add rotate X+ button
+        ax_rotate_x = plt.axes([0.7, 0.90, 0.08, 0.04])
+        self.btn_rotate_x = Button(ax_rotate_x, 'Rotate X+')
+        self.btn_rotate_x.on_clicked(self.rotate_x_plus)
+
         # Instructions
         self.fig.text(0.5, 0.02, 
-                     'Press "A" to toggle SELECTION mode | LEFT DRAG: Add to selection | RIGHT CLICK: Clear all',
-                     ha='center', fontsize=10, bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+            'Press "a" to toggle SELECTION mode | LEFT DRAG: Add to selection | RIGHT CLICK: Clear all',
+            ha='center', fontsize=10, bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
         
         self.mode_text = self.fig.text(0.5, 0.95, 'MODE: ROTATE (press A to select)', 
-                                       ha='center', fontsize=12, weight='bold',
-                                       bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.8))
+            ha='center', fontsize=12, weight='bold',
+            bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.8))
         
         plt.show()
     
-    def plot_mesh(self):
-        # Plot the triangular mesh
-        self.ax.clear()
-        
-        # Plot mesh faces
-        self.ax.plot_trisurf(self.vertices[:, 0], 
-                            self.vertices[:, 1], 
-                            self.vertices[:, 2],
-                            triangles=self.faces,
-                            alpha=0.8,
-                            color='lightblue',
-                            edgecolor='gray',
-                            linewidth=0.2)
-        
+    def rotate_x_plus(self, event):
+        """Rotate the view +2 degrees around the X-axis."""
+        elev = self.ax.elev + 2  # increment elevation
+        azim = self.ax.azim      # keep current azimuth
+        self.ax.view_init(elev=elev, azim=azim)
+        self.fig.canvas.draw_idle()
+        print(f"Rotated X by +2° → Elevation: {elev}, Azimuth: {azim}")
+
+    def update_display(self):
         # Highlight selected vertices (where flag > 0) with different colors
         unique_flags = np.unique(self.vertex_flag[self.vertex_flag > 0])
         if len(unique_flags) > 0:
@@ -73,20 +88,11 @@ class MeshSelector:
                 selected_verts = self.vertices[flag_indices]
                 color = colors[i % len(colors)]  # Cycle through colors if more than 8 flags
                 
-                self.ax.scatter(selected_verts[:, 0],
-                              selected_verts[:, 1],
-                              selected_verts[:, 2],
-                              c=color, s=100, alpha=1.0, 
-                              depthshade=False,
-                              label=f'Flag {flag_value}: {len(flag_indices)}')
+                self.ax.scatter(selected_verts[:, 0], selected_verts[:, 1], selected_verts[:, 2],
+                    c=color, s=5, alpha=1.0, depthshade=False, label=f'Flag {flag_value}: {len(flag_indices)}')
             self.ax.legend()
         
-        self.ax.set_xlabel('X')
-        self.ax.set_ylabel('Y')
-        self.ax.set_zlabel('Z')
-        self.ax.set_title('3D Mesh Vertex Selection Tool')
-        
-        self.fig.canvas.draw_idle()
+        # self.fig.canvas.draw_idle()
     
     def on_press(self, event):
         # Handle mouse press events
@@ -99,24 +105,19 @@ class MeshSelector:
         elif event.button == 3: # Right click - clear all selections
             self.vertex_flag = np.zeros(len(self.vertices), dtype=int)
             self.selection_polygon = []
-            self.plot_mesh()
+            self.update_display()
             print("All selections cleared")
     
     def on_motion(self, event):
-        # Handle mouse motion during selection
+        # If you’re not currently dragging (i.e., is_selecting is False) 
+        # or the mouse isn’t inside the 3D axes, do nothing.
         if not self.is_selecting or event.inaxes != self.ax:
             return
         
+        # Record the mouse position
         if event.xdata is not None and event.ydata is not None:
             self.selection_polygon.append((event.xdata, event.ydata))
-            
-            # Draw the selection polygon in real-time
-            if len(self.selection_polygon) > 1:
-                self.plot_mesh()
-                poly_array = np.array(self.selection_polygon)
-                self.ax.plot(poly_array[:, 0], poly_array[:, 1], 'r-', linewidth=2)
-                self.fig.canvas.draw_idle()
-    
+        
     def on_release(self, event):
         # Handle mouse release - complete selection
         if not self.is_selecting or event.button != 1:
@@ -137,7 +138,7 @@ class MeshSelector:
         
         # Clear polygon and redraw
         self.selection_polygon = []
-        self.plot_mesh()
+        self.update_display()
     
     def on_key(self, event):
         # Handle key press events
@@ -175,11 +176,7 @@ class MeshSelector:
             return
         
         # Get the flag value from text box
-        try:
-            flag_value = int(self.textbox.text)
-        except ValueError:
-            print(f"Invalid flag value: '{self.textbox.text}'. Using 1.")
-            flag_value = 1
+        flag_value = int(self.textbox.text)
         
         # Get the current 3D to 2D projection matrix
         proj_matrix = self.ax.get_proj()
@@ -213,11 +210,11 @@ class MeshSelector:
         inside = path.contains_points(vertices_2d)
         
         # For each vertex inside, check if it's visible (front-facing)
-        if np.sum(inside) > 0:
-            depths_inside = depths[inside]
-            # Use 40th percentile as cutoff - only select closer half
-            depth_threshold = np.percentile(depths_inside, 40)
-            front_facing = depths <= depth_threshold
+        inside_indices = np.where(inside)[0]
+        if len(inside_indices) > 0:
+            min_depth = np.min(depths[inside_indices])
+            tol = 1e-3  # tolerance for front-face detection
+            front_facing = np.abs(depths - min_depth) < tol
             inside = inside & front_facing
         
         # Update vertex flags for newly selected vertices
@@ -226,53 +223,15 @@ class MeshSelector:
         
         total_selected = np.sum(self.vertex_flag > 0)
         print(f"Set {np.sum(inside)} vertices to flag {flag_value} (total selected: {total_selected})")
-    
-    def get_vertex_flag(self):
-        # Return the vertex flag array
-        return self.vertex_flag
 
-if __name__ == "__main__":
-    # Create a sample atrium-like mesh (ellipsoid shape)
-    n_theta = 30
-    n_phi = 20
-    
-    theta = np.linspace(0, 2*np.pi, n_theta)
-    phi = np.linspace(0, np.pi, n_phi)
-    theta_grid, phi_grid = np.meshgrid(theta, phi)
-    
-    # Create ellipsoid vertices (simplified atrium shape)
-    a, b, c = 2.0, 1.5, 1.8  # semi-axes
-    x = a * np.sin(phi_grid) * np.cos(theta_grid)
-    y = b * np.sin(phi_grid) * np.sin(theta_grid)
-    z = c * np.cos(phi_grid)
-    
-    vertices = np.column_stack([x.flatten(), y.flatten(), z.flatten()])
-    
-    # Create faces (triangulation)
-    faces = []
-    for i in range(n_phi - 1):
-        for j in range(n_theta - 1):
-            # Two triangles per quad
-            v1 = i * n_theta + j
-            v2 = i * n_theta + (j + 1)
-            v3 = (i + 1) * n_theta + j
-            v4 = (i + 1) * n_theta + (j + 1)
-            
-            faces.append([v1, v2, v3])
-            faces.append([v2, v4, v3])
-    
-    faces = np.array(faces)
-    
+#%%
+if __name__ == "__main__":    
     script_dir = os.path.dirname(os.path.abspath(__file__)) # get the path of the current script
     os.chdir(script_dir) # change the working directory
     data_path = script_dir + "/data/"
 
-    if os.path.exists(data_path + 'vertex_flag.npy'): # file exist
-        vertex_flag = np.load(data_path + 'vertex_flag.npy')
-    else: # file do not exist
-        vertex_flag = np.zeros(len(vertices), dtype=int)
+    voxel, neighbor_id_2d, Delta, voxel_for_each_vertex, vertex, face, vertex_flag = codes.processing.prepare_geometry.execute(data_path)
+    vertex_color = np.ones((len(vertex_flag), 3))  # shape (11, 3), all ones
+    selector = MeshSelector(vertex, face, data_path, vertex_flag, vertex_color)
 
-    selector = MeshSelector(vertices, faces, data_path, vertex_flag)
-    
-    # After closing the window, you can access vertex flags:
-    # vertex_flag = selector.get_vertex_flag()
+# %%
