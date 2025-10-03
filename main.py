@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import plotly.graph_objects as go # pip install plotly. For 3D interactive plot: triangular mesh, and activation movie
 import plotly.io as pio
 pio.renderers.default = "browser" # simulation result mesh display in internet browser
+import scipy.io
 
 script_dir = os.path.dirname(os.path.abspath(__file__)) # get the path of the current script
 os.chdir(script_dir) # change the working directory
@@ -47,6 +48,8 @@ elif model_flag == 2: # Aliev–Panfilov
     parameter['c_voxel'] = c * np.ones(n_voxel)
     v_gate = 0.13
     parameter['v_gate_voxel'] = np.ones(n_voxel) * v_gate
+#%%
+rotor_flag = 1 # 0: focal arrhythmia. 1: rotor arrhythmia via s1-s2 pacing
 
 # %% 
 # compute simulation
