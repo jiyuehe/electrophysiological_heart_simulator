@@ -2,6 +2,7 @@ This is an electrophysiological heart simulator based on Mitchell-Schaeffer equa
 
 An example of arrhythmia simulation:  
 ![Demo](result/0_demo/activation_movie.gif)  
+<img src="result/0_demo/activation_movie.gif" alt="Demo" width="400" />
 
 Examples of simulated action potential:  
 ![Demo](result/0_demo/action_potential.png)  
