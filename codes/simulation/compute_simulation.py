@@ -133,9 +133,19 @@ def execute_CPU_parallel(neighbor_id_2d, voxel_flag, n_voxel, dt, t_final, P_2d,
                     h_max = 0.30
                     id1 = np.where((action_potential_s2_t >= ap_min) & (action_potential_s2_t <= ap_max))[0]
                     id2 = np.where((h_s2_t >= h_min) & (h_s2_t <= h_max))[0]
-                    s2_pacing_voxel_id = np.intersect1d(id1, id2)
+                    s2_pacing_voxel_id_auto = np.intersect1d(id1, id2) # these voxels have a shape like a ring
 
-                debug_flag = 1
+                    # grab a portion of the s2 pacing sites, so that it's like a curvy line instead of a ring
+                    id = s2_pacing_voxel_id_auto[23] # find one voxel to start, pick a random one
+                    while id.size < s2_pacing_voxel_id_auto.size/2: # repeat several times so the amount of elements in id grows each time
+                        neighbor_id = neighbor_id_2d[id, :] # add all the neighbors of the pacing voxel to be paced
+                        neighbor_id = neighbor_id[neighbor_id != -1] # remove the -1s, which means no neighbors
+                        id = np.concatenate([np.atleast_1d(id), np.atleast_1d(neighbor_id)])
+                        id = np.intersect1d(id, s2_pacing_voxel_id_auto)
+
+                    s2_pacing_voxel_id = id
+
+                debug_flag = 0
                 if debug_flag == 1 and t == s2_t:
                     print(np.array2string(s2_pacing_voxel_id, separator=', '))
 

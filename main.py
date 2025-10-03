@@ -168,7 +168,7 @@ if do_flag == 1:
 # activation phase movie display on vertex using matplotlib, with option to save as mp4
 do_flag = 1
 if do_flag == 1: 
-    save_flag = 0 # 1: save movie as mp4. 0: do not save movie
+    save_flag = 1 # 1: save movie as mp4. 0: do not save movie
     starting_time = 200 # ms
     action_potential_phase_vertex = action_potential_phase[voxel_for_each_vertex, starting_time:]
     codes.display_activation_movie.execute_on_vertex_save_as_mp4(save_flag, action_potential_phase_vertex, vertex)

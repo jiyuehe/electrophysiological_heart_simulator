@@ -133,7 +133,7 @@ def execute_on_voxel_save_as_mp4(save_flag, action_potential_phase, voxel): # ac
         print("saving movie as mp4")
 
         def animate(n):
-            if ((n+1) % (n_time//5)) == 0:
+            if ((n+1) % (n_time//10)) == 0:
                 print(f'saving movie {(n+1)/n_time*100:.1f}%')
 
             plot_handle.set_facecolor(map_color[n]) # set color based on phase to each voxel
@@ -206,7 +206,7 @@ def execute_on_vertex_save_as_mp4(save_flag, action_potential_phase_vertex, vert
         print("saving movie as mp4")
 
         def animate(n):
-            if ((n+1) % (n_time//5)) == 0:
+            if ((n+1) % (n_time//10)) == 0:
                 print(f'saving movie {(n+1)/n_time*100:.1f}%')
 
             plot_handle.set_facecolor(map_color[n]) # set color based on phase to each voxel
