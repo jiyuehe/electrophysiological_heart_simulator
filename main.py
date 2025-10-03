@@ -22,7 +22,7 @@ voxel, neighbor_id_2d, Delta, voxel_for_each_vertex, vertex, face = codes.proces
 # simulation parameters
 # --------------------------------------------------
 dt = 0.05 # ms. if dt is not small enough, simulation will result nan. Generally, if c <= 1.0, can use dt = 0.05
-t_final = 300 # ms. NOTE: need to be at least long enough to have two pacings, or cannot compute phase from action potential
+t_final = 1000 # ms. NOTE: need to be at least long enough to have two pacings, or cannot compute phase from action potential
 pacing_voxel_id = 100
 pacing_start_time = 1 # ms
 pacing_cycle_length = 250 # ms
@@ -51,7 +51,9 @@ elif model_flag == 2: # Aliev–Panfilov
 # %% 
 # compute simulation
 # --------------------------------------------------
-do_flag = 1 # 1: compute, 0: load existing result
+electrode_id = [0, 5000, 10000] # electrode locations for computing electrograms
+
+do_flag = 0 # 1: compute, 0: load existing result
 if do_flag == 1:
     # fiber orientations
     D0 = codes.simulation.fibers.execute(n_voxel)
@@ -66,8 +68,7 @@ if do_flag == 1:
     action_potential, h = codes.compute_simulation.execute_CPU_parallel(neighbor_id_2d, pacing_voxel_id, n_voxel, dt, t_final, pacing_signal, P_2d, Delta, model_flag)
     np.save('result/action_potential.npy', action_potential)
 
-    # compute unipolar electrogram
-    electrode_id = [0, 5000, 10000]
+    # compute unipolar electrogram    
     electrode_xyz = voxel[electrode_id, :]
     electrogram_unipolar = codes.compute_unipolar_electrogram.execute_CPU_parallel(electrode_xyz, voxel, D0, parameter['c_voxel'], action_potential, Delta, neighbor_id_2d)
     np.save('result/electrogram_unipolar.npy', electrogram_unipolar)
@@ -101,7 +102,7 @@ if debug_plot == 1:
 # display result
 # --------------------------------------------------
 # create phase from action potential
-do_flag = 1 # 1: compute, 0: load existing result
+do_flag = 0 # 1: compute, 0: load existing result
 if do_flag == 1:
     action_potential_phase = np.zeros_like(action_potential)
     activation_phase = np.zeros_like(action_potential)
@@ -166,3 +167,39 @@ do_flag = 0
 if do_flag == 1: 
     save_flag = 1
     codes.display_activation_movie.save_as_mp4(save_flag, action_potential_phase, voxel)
+#%%
+# local activation time map
+action_potential_mesh = action_potential[voxel_for_each_vertex,:]
+t_start = 1
+cycle_length_percentage = 1 # use a number <1 when at a time instance, multiple cycles overlap
+lat, cl = codes.calculate_local_activation_time.execute_on_action_potential(t_start, action_potential_mesh, v_gate, cycle_length_percentage)
+# lat.shape = (number of mesh vertices,). 
+# cl.shape = (n x number of mesh vertices, ) where n depends on how many cycle length is there in the action potential
+
+debug_plot = 0
+if debug_plot == 1: # cycle length histogram
+    plt.figure()
+    plt.hist(cl, bins=10)
+    plt.xlabel('cycle length, ms')
+    plt.ylabel('counts')
+    plt.title('cycle length histogram')
+    plt.show()
+
+debug_plot = 0
+if debug_plot == 1: # local activation time map
+    # convert local activation time into color
+    data = lat
+    data_min = np.min(data)
+    data_max = np.max(data)
+    data_threshold = data_min
+    color = codes.convert_data_to_color.execute(data, data_min, data_max, data_threshold)
+
+    fig = go.Figure(
+        data = [
+            go.Mesh3d(
+                x = vertex[:, 0], y = vertex[:, 1], z = vertex[:, 2],
+                i = face[:, 0], j = face[:, 1], k = face[:, 2],
+                vertexcolor = color)
+        ]
+    )
+    fig.show()
