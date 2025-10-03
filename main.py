@@ -203,3 +203,4 @@ if debug_plot == 1: # local activation time map
         ]
     )
     fig.show()
+
