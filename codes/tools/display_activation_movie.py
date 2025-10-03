@@ -85,8 +85,8 @@ def execute_on_voxel_save_as_mp4(save_flag, action_potential_phase, voxel): # ac
     map_color = {}
     n_time = movie_data.shape[1]
     for n in range(n_time):
-        if (n % (n_time//5)) == 0:
-            print(f'compute color map {n/n_time*100:.1f}%')
+        if ((n+1) % (n_time//5)) == 0:
+            print(f'compute color map {(n+1)/n_time*100:.1f}%')
         data = movie_data[:, n]
         color = codes.convert_data_to_color.execute(data, data_min, data_max, data_threshold)
         map_color[n] = color
@@ -115,8 +115,8 @@ def execute_on_voxel_save_as_mp4(save_flag, action_potential_phase, voxel): # ac
     view_angles = {} # dictionary to store view angles for each frame
     n_time = action_potential_phase.shape[1]
     for n in range(n_time):
-        if (n % (n_time//10)) == 0:
-            print(f'playing movie {n/n_time*100:.1f}%')
+        if ((n+1) % (n_time//5)) == 0:
+            print(f'playing movie {(n+1)/n_time*100:.1f}%')
 
         plot_handle.set_facecolor(map_color[n]) # set color based on phase to each voxel
         ax.set_title(f'Time: {n}/{n_time} ms') # set title with current time step
@@ -133,8 +133,8 @@ def execute_on_voxel_save_as_mp4(save_flag, action_potential_phase, voxel): # ac
         print("saving movie as mp4")
 
         def animate(n):
-            if (n % (n_time//10)) == 0:
-                print(f'saving movie {n/n_time*100:.1f}%')
+            if ((n+1) % (n_time//5)) == 0:
+                print(f'saving movie {(n+1)/n_time*100:.1f}%')
 
             plot_handle.set_facecolor(map_color[n]) # set color based on phase to each voxel
             ax.set_title(f'Time: {n}/{n_time} ms') # set title with current time step
@@ -158,8 +158,8 @@ def execute_on_vertex_save_as_mp4(save_flag, action_potential_phase_vertex, vert
     map_color = {}
     n_time = movie_data.shape[1]
     for n in range(n_time):
-        if (n % (n_time//5)) == 0:
-            print(f'compute color map {n/n_time*100:.1f}%')
+        if ((n+1) % (n_time//5)) == 0:
+            print(f'compute color map {(n+1)/n_time*100:.1f}%')
         data = movie_data[:, n]
         color = codes.convert_data_to_color.execute(data, data_min, data_max, data_threshold)
         map_color[n] = color
@@ -188,8 +188,8 @@ def execute_on_vertex_save_as_mp4(save_flag, action_potential_phase_vertex, vert
     view_angles = {} # dictionary to store view angles for each frame
     n_time = action_potential_phase_vertex.shape[1]
     for n in range(n_time):
-        if (n % (n_time//10)) == 0:
-            print(f'playing movie {n/n_time*100:.1f}%')
+        if ((n+1) % (n_time//5)) == 0:
+            print(f'playing movie {(n+1)/n_time*100:.1f}%')
 
         plot_handle.set_facecolor(map_color[n]) # set color based on phase to each voxel
         ax.set_title(f'Time: {n}/{n_time} ms') # set title with current time step
@@ -206,8 +206,8 @@ def execute_on_vertex_save_as_mp4(save_flag, action_potential_phase_vertex, vert
         print("saving movie as mp4")
 
         def animate(n):
-            if (n % (n_time//10)) == 0:
-                print(f'saving movie {n/n_time*100:.1f}%')
+            if ((n+1) % (n_time//5)) == 0:
+                print(f'saving movie {(n+1)/n_time*100:.1f}%')
 
             plot_handle.set_facecolor(map_color[n]) # set color based on phase to each voxel
             ax.set_title(f'Time: {n}/{n_time} ms') # set title with current time step

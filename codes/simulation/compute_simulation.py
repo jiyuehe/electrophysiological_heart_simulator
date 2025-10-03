@@ -65,7 +65,7 @@ def compute_voxel(u_current, h_current, P_2d, neighbor_id_2d_2, J_stim, dt, Delt
 
     return u_next, h_next
 
-def execute_CPU_parallel(neighbor_id_2d, voxel_flag, n_voxel, dt, t_final, pacing_signal, P_2d, Delta, model_flag, rotor_flag):
+def execute_CPU_parallel(neighbor_id_2d, voxel_flag, n_voxel, dt, t_final, P_2d, Delta, model_flag, rotor_flag):
     if rotor_flag == 0:
         s1_pacing_voxel_id = np.where(voxel_flag == 1)[0]
         s2_pacing_voxel_id = []
@@ -76,10 +76,14 @@ def execute_CPU_parallel(neighbor_id_2d, voxel_flag, n_voxel, dt, t_final, pacin
     neighbor_id = neighbor_id_2d[s1_pacing_voxel_id, :] # add all the neighbors of the pacing voxel to be paced
     neighbor_id = neighbor_id[neighbor_id != -1] # remove the -1s, which means no neighbors
     s1_pacing_voxel_id = np.concatenate([s1_pacing_voxel_id, neighbor_id])
+    s1_pacing_voxel_id = np.unique(s1_pacing_voxel_id)
 
-    neighbor_id = neighbor_id_2d[s2_pacing_voxel_id, :] # add all the neighbors of the pacing voxel to be paced
-    neighbor_id = neighbor_id[neighbor_id != -1] # remove the -1s, which means no neighbors
-    s2_pacing_voxel_id = np.concatenate([s2_pacing_voxel_id, neighbor_id])
+    method_find_s2_pacing_sites = 2 # 1: use manually assigned s2 pacing sites. 2: automatically find out s2 pacing sites
+    if method_find_s2_pacing_sites == 1:
+        neighbor_id = neighbor_id_2d[s2_pacing_voxel_id, :] # add all the neighbors of the pacing voxel to be paced
+        neighbor_id = neighbor_id[neighbor_id != -1] # remove the -1s, which means no neighbors
+        s2_pacing_voxel_id = np.concatenate([s2_pacing_voxel_id, neighbor_id])
+        s2_pacing_voxel_id = np.unique(s2_pacing_voxel_id)
 
     # set initial value at rest
     if model_flag == 1:
@@ -102,25 +106,39 @@ def execute_CPU_parallel(neighbor_id_2d, voxel_flag, n_voxel, dt, t_final, pacin
         # this does not matter because the corresponding P_2d will be 0, 
         # so these terms will be eliminated anyway
 
+    s1_t = 0
+    s2_t = s1_t + 205 / dt # ms
+    pacing_duration = 10 / dt # 10 ms
+
     for t in range(T): 
         if ((t+1) % (T//5)) == 0:
             print(f'simulating {(t+1)/T*100:.1f}%')
+
+        # s1 pacing
+        J_stim.fill(0.0) # reset values to 0s
         
-        if rotor_flag == 0: # focal arrhythmia
-            J_stim.fill(0.0) # reset values to 0s
-            J_stim[s1_pacing_voxel_id] = pacing_signal[t]
-        elif rotor_flag == 1:
-            pacing_duration = 10 / dt # 10 ms
+        if t >= s1_t and t <= s1_t + pacing_duration:
+            J_stim[s1_pacing_voxel_id] = 20
 
-            # s1 pacing
-            J_stim.fill(0.0) # reset values to 0s
-            s1_t = 0
-            if t >= s1_t and t <= s1_t + pacing_duration:
-                J_stim[s1_pacing_voxel_id] = 20
-
-            # s2 pacing
-            s2_t = 205 / dt # ms
+        # s2 pacing
+        if rotor_flag == 1:
             if t >= s2_t and t <= s2_t + pacing_duration:
+                if method_find_s2_pacing_sites == 2: # automatically find out s2 pacing sites
+                    action_potential_s2_t = sim_u_voxel[:,int(s2_t*dt)-1] # the current values are not saved yet, so check the previous time frame
+                    h_s2_t = sim_h_voxel[:,int(s2_t*dt)-1]
+
+                    ap_min = 0.002058
+                    ap_max = 0.026245
+                    h_min = 0.221531
+                    h_max = 0.335100
+                    id1 = np.where((action_potential_s2_t >= ap_min) & (action_potential_s2_t <= ap_max))[0]
+                    id2 = np.where((h_s2_t >= h_min) & (h_s2_t <= h_max))[0]
+                    s2_pacing_voxel_id = np.intersect1d(id1, id2)
+
+                debug_flag = 1
+                if debug_flag == 1 and t == s2_t:
+                    print(np.array2string(s2_pacing_voxel_id, separator=', '))
+
                 J_stim[s2_pacing_voxel_id] = 20
 
         u_next, h_next = compute_voxel(u_current, h_current, P_2d, neighbor_id_2d_2, J_stim, dt, Delta, model_flag)
