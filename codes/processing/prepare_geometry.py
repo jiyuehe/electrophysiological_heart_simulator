@@ -13,6 +13,8 @@ def execute(data_path):
     Delta = mat_data['data']['geometry'][0,0]['edited'][0,0]['volume'][0,0]['delta'][0,0][0,0] # voxel spacing
     voxel_for_each_vertex = mat_data['data']['geometry'][0,0]['edited'][0,0]['voxel_for_each_vertex'][0,0].astype(np.int32) -1 # -1 is to convert Matlab 1-based index to Python 0-based index
     voxel_for_each_vertex = voxel_for_each_vertex.flatten() # convert to 1D array
+    vertex_for_each_voxel = mat_data['data']['geometry'][0,0]['edited'][0,0]['vertex_for_each_voxel'][0,0].astype(np.int32) -1 # -1 is to convert Matlab 1-based index to Python 0-based index
+    vertex_for_each_voxel = vertex_for_each_voxel.flatten() # convert to 1D array
     vertex = mat_data['data']['geometry'][0,0]['edited'][0,0]['vertex'][0,0] # xyz coordinates of each vertex
     face = mat_data['data']['geometry'][0,0]['edited'][0,0]['face'][0,0].astype(np.int32) -1 # -1 is to convert Matlab 1-based index to Python 0-based index
 
@@ -21,7 +23,7 @@ def execute(data_path):
     else: # file do not exist
         vertex_flag = np.zeros(len(vertex), dtype=int)
 
-    return voxel, neighbor_id_2d, Delta, voxel_for_each_vertex, vertex, face, vertex_flag
+    return voxel, neighbor_id_2d, Delta, voxel_for_each_vertex, vertex_for_each_voxel, vertex, face, vertex_flag
 
     debug_plot = 0
     if debug_plot == 1:

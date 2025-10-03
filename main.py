@@ -16,14 +16,14 @@ os.chdir(script_dir) # change the working directory
 # load the .mat data file
 # --------------------------------------------------
 data_path = script_dir + "/data/"
-voxel, neighbor_id_2d, Delta, voxel_for_each_vertex, vertex, face, vertex_flag = codes.processing.prepare_geometry.execute(data_path)
+voxel, neighbor_id_2d, Delta, voxel_for_each_vertex, vertex_for_each_voxel, vertex, face, vertex_flag = codes.processing.prepare_geometry.execute(data_path)
+voxel_flag = vertex_flag[vertex_for_each_voxel]
 
 # %% 
 # simulation parameters
 # --------------------------------------------------
 dt = 0.05 # ms. if dt is not small enough, simulation will result nan. Generally, if c <= 1.0, can use dt = 0.05
 t_final = 350 # ms. NOTE: need to be at least long enough to have two pacings, or cannot compute phase from action potential
-pacing_voxel_id = voxel_for_each_vertex[np.where(vertex_flag == 1)[0]]
 pacing_start_time = 1 # ms
 pacing_cycle_length = 250 # ms
 
@@ -48,7 +48,7 @@ elif model_flag == 2: # Aliev–Panfilov
     v_gate = 0.13
     parameter['v_gate_voxel'] = np.ones(n_voxel) * v_gate
 #%%
-rotor_flag = 1 # 0: focal arrhythmia. 1: rotor arrhythmia via s1-s2 pacing
+rotor_flag = 0 # 0: focal arrhythmia. 1: rotor arrhythmia via s1-s2 pacing
 
 # %% 
 # compute simulation
@@ -67,7 +67,7 @@ if do_flag == 1:
     pacing_signal = codes.create_pacing_signal.execute(dt, t_final, pacing_start_time, pacing_cycle_length, model_flag)
 
     # compute simulation
-    action_potential, h = codes.compute_simulation.execute_CPU_parallel(neighbor_id_2d, pacing_voxel_id, n_voxel, dt, t_final, pacing_signal, P_2d, Delta, model_flag, rotor_flag)
+    action_potential, h = codes.compute_simulation.execute_CPU_parallel(neighbor_id_2d, voxel_flag, n_voxel, dt, t_final, pacing_signal, P_2d, Delta, model_flag, rotor_flag)
     np.save('result/action_potential.npy', action_potential)
 
     # compute unipolar electrogram    

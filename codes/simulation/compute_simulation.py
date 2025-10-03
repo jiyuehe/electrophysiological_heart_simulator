@@ -65,10 +65,21 @@ def compute_voxel(u_current, h_current, P_2d, neighbor_id_2d_2, J_stim, dt, Delt
 
     return u_next, h_next
 
-def execute_CPU_parallel(neighbor_id_2d, pacing_voxel_id, n_voxel, dt, t_final, pacing_signal, P_2d, Delta, model_flag, rotor_flag):
-    neighbor_id = neighbor_id_2d[pacing_voxel_id, :] # add all the neighbors of the pacing voxel to be paced
+def execute_CPU_parallel(neighbor_id_2d, voxel_flag, n_voxel, dt, t_final, pacing_signal, P_2d, Delta, model_flag, rotor_flag):
+    if rotor_flag == 0:
+        s1_pacing_voxel_id = np.where(voxel_flag == 1)[0]
+        s2_pacing_voxel_id = []
+    elif rotor_flag == 1:
+        s1_pacing_voxel_id = np.where(voxel_flag == 1)[0]
+        s2_pacing_voxel_id = np.where(voxel_flag == 2)[0]
+
+    neighbor_id = neighbor_id_2d[s1_pacing_voxel_id, :] # add all the neighbors of the pacing voxel to be paced
     neighbor_id = neighbor_id[neighbor_id != -1] # remove the -1s, which means no neighbors
-    pacing_voxel_id = np.concatenate([pacing_voxel_id, neighbor_id])
+    s1_pacing_voxel_id = np.concatenate([s1_pacing_voxel_id, neighbor_id])
+
+    neighbor_id = neighbor_id_2d[s2_pacing_voxel_id, :] # add all the neighbors of the pacing voxel to be paced
+    neighbor_id = neighbor_id[neighbor_id != -1] # remove the -1s, which means no neighbors
+    s2_pacing_voxel_id = np.concatenate([s2_pacing_voxel_id, neighbor_id])
 
     # set initial value at rest
     if model_flag == 1:
@@ -98,21 +109,20 @@ def execute_CPU_parallel(neighbor_id_2d, pacing_voxel_id, n_voxel, dt, t_final, 
         
         if rotor_flag == 0: # focal arrhythmia
             J_stim.fill(0.0) # reset values to 0s
-            J_stim[pacing_voxel_id] = pacing_signal[t]
+            J_stim[s1_pacing_voxel_id] = pacing_signal[t]
         elif rotor_flag == 1:
             pacing_duration = 10/dt # 10 ms
 
             # s1 pacing
             J_stim.fill(0.0) # reset values to 0s
-            t1 = 0
-            if t >= t1 and t <= t1 + pacing_duration:
-                J_stim[pacing_voxel_id] = 20
+            s1_t = 0
+            if t >= s1_t and t <= s1_t + pacing_duration:
+                J_stim[s1_pacing_voxel_id] = 20
 
             # s2 pacing
-            s2_t = 200
-            s2_voxel_id = 2000
+            s2_t = 193
             if t >= s2_t and t <= s2_t + pacing_duration:
-                J_stim[pacing_voxel_id] = 20
+                J_stim[s1_pacing_voxel_id] = 20
 
         u_next, h_next = compute_voxel(u_current, h_current, P_2d, neighbor_id_2d_2, J_stim, dt, Delta, model_flag)
         
