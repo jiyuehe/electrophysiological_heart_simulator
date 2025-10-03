@@ -9,3 +9,4 @@ from .processing import calculate_local_activation_time
 from .tools import convert_data_to_color
 from .tools import display_activation_movie
 from .simulation import compute_unipolar_electrogram
+from .archive import debug_display_of_s1s2_pacing_sites

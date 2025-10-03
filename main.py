@@ -55,7 +55,7 @@ rotor_flag = 1 # 0: focal arrhythmia. 1: rotor arrhythmia via s1-s2 pacing
 # --------------------------------------------------
 electrode_id = [0, 5000, 10000] # electrode locations for computing electrograms
 
-do_flag = 1 # 1: compute, 0: load existing result
+do_flag = 0 # 1: compute, 0: load existing result
 if do_flag == 1:
     # fiber orientations
     D0 = codes.simulation.fibers.execute(n_voxel)
@@ -86,9 +86,47 @@ if do_flag == 1:
     np.save('result/action_potential_phase.npy', action_potential_phase)
 elif do_flag == 0:
     action_potential = np.load('result/action_potential.npy')
-    action_potential = np.load('result/h.npy')
+    h = np.load('result/h.npy')
     electrogram_unipolar = np.load('result/electrogram_unipolar.npy')
     action_potential_phase = np.load('result/action_potential_phase.npy')
+
+debug_plot = 0
+if debug_plot == 1: # for s1s2 rotor pacing
+    s1_pacing_voxel_id = np.where(voxel_flag == 1)[0]
+    s2_pacing_voxel_id = np.where(voxel_flag == 2)[0]
+
+    neighbor_id = neighbor_id_2d[s1_pacing_voxel_id, :] # add all the neighbors of the pacing voxel to be paced
+    neighbor_id = neighbor_id[neighbor_id != -1] # remove the -1s, which means no neighbors
+    s1_pacing_voxel_id = np.concatenate([s1_pacing_voxel_id, neighbor_id])
+
+    neighbor_id = neighbor_id_2d[s2_pacing_voxel_id, :] # add all the neighbors of the pacing voxel to be paced
+    neighbor_id = neighbor_id[neighbor_id != -1] # remove the -1s, which means no neighbors
+    s2_pacing_voxel_id = np.concatenate([s2_pacing_voxel_id, neighbor_id])
+
+    s2_t = 205
+
+    action_potential_s2 = action_potential[s2_pacing_voxel_id,s2_t]
+    h_s2 = h[s2_pacing_voxel_id,s2_t]
+
+    print(
+        f"action potential min max: {np.min(action_potential_s2)} {np.max(action_potential_s2)}\n"
+        f"h min max: {np.min(h_s2)} {np.max(h_s2)}"
+    )
+
+    # plot the values of action_potential_s2 and h_s2
+    plt.figure()
+    plt.plot(action_potential_s2,'b')
+    plt.plot(h_s2,'g')
+    plt.xlabel('voxels')
+    plt.ylabel('')
+    plt.title('b:action potential, g:h')
+
+    # plot the regions on voxels
+    codes.debug_display_of_s1s2_pacing_sites.execute(voxel, s1_pacing_voxel_id, s2_pacing_voxel_id)
+
+    # automatically find s2 pacing voxels
+    
+
 
 # compute local activation time map
 action_potential_mesh = action_potential[voxel_for_each_vertex,:]
