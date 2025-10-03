@@ -67,7 +67,8 @@ def compute_voxel(u_current, h_current, P_2d, neighbor_id_2d_2, J_stim, dt, Delt
 
 def execute_CPU_parallel(neighbor_id_2d, pacing_voxel_id, n_voxel, dt, t_final, pacing_signal, P_2d, Delta, model_flag, rotor_flag):
     neighbor_id = neighbor_id_2d[pacing_voxel_id, :] # add all the neighbors of the pacing voxel to be paced
-    pacing_voxel_id = neighbor_id[neighbor_id != -1] # remove the -1s, which means no neighbors
+    neighbor_id = neighbor_id[neighbor_id != -1] # remove the -1s, which means no neighbors
+    pacing_voxel_id = np.concatenate([pacing_voxel_id, neighbor_id])
 
     # set initial value at rest
     if model_flag == 1:
