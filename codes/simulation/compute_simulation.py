@@ -65,7 +65,7 @@ def compute_voxel(u_current, h_current, P_2d, neighbor_id_2d_2, J_stim, dt, Delt
 
     return u_next, h_next
 
-def execute_CPU_parallel(neighbor_id_2d, pacing_voxel_id, n_voxel, dt, t_final, pacing_signal, P_2d, Delta, model_flag):
+def execute_CPU_parallel(neighbor_id_2d, pacing_voxel_id, n_voxel, dt, t_final, pacing_signal, P_2d, Delta, model_flag, rotor_flag):
     neighbor_id = neighbor_id_2d[pacing_voxel_id, :] # add all the neighbors of the pacing voxel to be paced
     pacing_voxel_id = neighbor_id[neighbor_id != -1] # remove the -1s, which means no neighbors
 
@@ -95,8 +95,23 @@ def execute_CPU_parallel(neighbor_id_2d, pacing_voxel_id, n_voxel, dt, t_final, 
         if do_flag == 1 and (t % (T//5)) == 0:
             print(f'simulating {t/T*100:.1f}%')
         
-        J_stim.fill(0.0) # reset values to 0s
-        J_stim[pacing_voxel_id] = pacing_signal[t]
+        if rotor_flag == 0: # focal arrhythmia
+            J_stim.fill(0.0) # reset values to 0s
+            J_stim[pacing_voxel_id] = pacing_signal[t]
+        elif rotor_flag == 1:
+            pacing_duration = 10/dt # 10 ms
+
+            # s1 pacing
+            J_stim.fill(0.0) # reset values to 0s
+            t1 = 0
+            if t >= t1 and t <= t1 + pacing_duration:
+                J_stim[pacing_voxel_id] = 20
+
+            # s2 pacing
+            s2_t = 200
+            s2_voxel_id = 2000
+            if t >= s2_t and t <= s2_t + pacing_duration:
+                J_stim[pacing_voxel_id] = 20
 
         u_next, h_next = compute_voxel(u_current, h_current, P_2d, neighbor_id_2d_2, J_stim, dt, Delta, model_flag)
         
