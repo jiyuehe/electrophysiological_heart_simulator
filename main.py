@@ -69,6 +69,7 @@ if do_flag == 1:
     # compute simulation
     action_potential, h = codes.compute_simulation.execute_CPU_parallel(neighbor_id_2d, voxel_flag, n_voxel, dt, t_final, pacing_signal, P_2d, Delta, model_flag, rotor_flag)
     np.save('result/action_potential.npy', action_potential)
+    np.save('result/h.npy', h)
 
     # compute unipolar electrogram    
     electrode_xyz = voxel[electrode_id, :]
@@ -79,14 +80,13 @@ if do_flag == 1:
     action_potential_phase = np.zeros_like(action_potential)
     activation_phase = np.zeros_like(action_potential)
     for id in range(action_potential.shape[0]):
-        do_flag = 1
-        if do_flag == 1 and (id % (action_potential.shape[0]//5)) == 0:
-            print(f'compute phase {id/action_potential.shape[0]*100:.1f}%')
-
+        if ((id+1) % (action_potential.shape[0]//5)) == 0:
+            print(f'compute phase {(id+1)/action_potential.shape[0]*100:.1f}%')
         action_potential_phase[id,:], activation_phase[id,:] = codes.create_phase.execute(action_potential[id,:], v_gate)
     np.save('result/action_potential_phase.npy', action_potential_phase)
 elif do_flag == 0:
     action_potential = np.load('result/action_potential.npy')
+    action_potential = np.load('result/h.npy')
     electrogram_unipolar = np.load('result/electrogram_unipolar.npy')
     action_potential_phase = np.load('result/action_potential_phase.npy')
 

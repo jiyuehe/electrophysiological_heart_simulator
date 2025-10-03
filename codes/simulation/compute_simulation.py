@@ -103,9 +103,8 @@ def execute_CPU_parallel(neighbor_id_2d, voxel_flag, n_voxel, dt, t_final, pacin
         # so these terms will be eliminated anyway
 
     for t in range(T): 
-        do_flag = 1
-        if do_flag == 1 and (t % (T//5)) == 0:
-            print(f'simulating {t/T*100:.1f}%')
+        if ((t+1) % (T//5)) == 0:
+            print(f'simulating {(t+1)/T*100:.1f}%')
         
         if rotor_flag == 0: # focal arrhythmia
             J_stim.fill(0.0) # reset values to 0s
