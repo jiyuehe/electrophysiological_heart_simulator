@@ -1,10 +1,16 @@
+#%%
+import os, sys
+script_dir = os.path.dirname(os.path.abspath(__file__)) # get the path of the current script
+two_folder_levels_up = os.path.abspath(os.path.join(script_dir, "..", ".."))
+data_path = two_folder_levels_up + "/data/"
+os.chdir(two_folder_levels_up) # change the working directory
+if two_folder_levels_up not in sys.path:
+    sys.path.insert(0, two_folder_levels_up) # Add the two-levels-up directory to sys.path
+
 import codes
-import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.path import Path
-# from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-# from mpl_toolkits.mplot3d import Axes3D
 
 #%%
 class MeshSelector:
@@ -61,10 +67,10 @@ class MeshSelector:
 
         # Instructions
         self.fig.text(0.5, 0.02, 
-            'Press "a" to toggle SELECTION mode | LEFT DRAG: Add to selection | RIGHT CLICK: Clear all',
+            'Press "a" to toggle Rotate/Select mode | Mouse left drag: Add vertices to selection | Right click: Clear all selected',
             ha='center', fontsize=10, bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
         
-        self.mode_text = self.fig.text(0.5, 0.95, 'MODE: ROTATE (press A to select)', 
+        self.mode_text = self.fig.text(0.5, 0.95, 'Mode: Rotate (press "a" change to Select)', 
             ha='center', fontsize=12, weight='bold',
             bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.8))
         
@@ -136,13 +142,13 @@ class MeshSelector:
         if event.key.lower() == 'a':
             self.selection_mode = not self.selection_mode
             if self.selection_mode:
-                self.mode_text.set_text('MODE: SELECTION (press A to rotate)')
+                self.mode_text.set_text('Mode: Select (press "a" change to Rotate)')
                 self.mode_text.set_bbox(dict(boxstyle='round', facecolor='yellow', alpha=0.8))
                 # Disable 3D rotation
                 self.ax.disable_mouse_rotation()
                 print("Selection mode ON - Click and drag to add vertices to selection")
             else:
-                self.mode_text.set_text('MODE: ROTATE (press A to select)')
+                self.mode_text.set_text('Mode: Rotate (press "a" change to Select)')
                 self.mode_text.set_bbox(dict(boxstyle='round', facecolor='lightgreen', alpha=0.8))
                 # Enable 3D rotation
                 self.ax.mouse_init()
@@ -216,11 +222,7 @@ class MeshSelector:
         print(f"Set {np.sum(inside)} vertices to flag {flag_value} (total selected: {total_selected})")
 
 #%%
-if __name__ == "__main__":    
-    script_dir = os.path.dirname(os.path.abspath(__file__)) # get the path of the current script
-    os.chdir(script_dir) # change the working directory
-    data_path = script_dir + "/data/"
-
+if __name__ == "__main__":
     voxel, neighbor_id_2d, Delta, voxel_for_each_vertex, vertex_for_each_voxel, vertex, face, vertex_flag = codes.processing.prepare_geometry.execute(data_path)
     vertex_color = np.ones((len(vertex_flag), 3))  # shape (11, 3), all ones
     selector = MeshSelector(vertex, face, data_path, vertex_flag, vertex_color)
