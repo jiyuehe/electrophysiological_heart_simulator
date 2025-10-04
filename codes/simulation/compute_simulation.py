@@ -108,15 +108,19 @@ def execute_CPU_parallel(neighbor_id_2d, voxel_flag, n_voxel, dt, t_final, P_2d,
 
     s1_t = 0
     s2_t = s1_t + 205 / dt # ms
+    ap_min = 0.002
+    ap_max = 0.026
+    h_min = 0.222
+    h_max = 0.335
     pacing_duration = 10 / dt # 10 ms
 
     for t in range(T): 
         if ((t+1) % (T//5)) == 0:
             print(f'simulating {(t+1)/T*100:.1f}%')
 
-        # s1 pacing
-        J_stim.fill(0.0) # reset values to 0s
+        J_stim.fill(0.0) # reset pacing values to 0s
         
+        # s1 pacing
         if t >= s1_t and t <= s1_t + pacing_duration:
             J_stim[s1_pacing_voxel_id] = 20
 
@@ -124,30 +128,22 @@ def execute_CPU_parallel(neighbor_id_2d, voxel_flag, n_voxel, dt, t_final, P_2d,
         if rotor_flag == 1:
             if t >= s2_t and t <= s2_t + pacing_duration:
                 if method_find_s2_pacing_sites == 2: # automatically find out s2 pacing sites
-                    action_potential_s2_t = sim_u_voxel[:,int(s2_t*dt)-1] # the current values are not saved yet, so check the previous time frame
-                    h_s2_t = sim_h_voxel[:,int(s2_t*dt)-1]
+                    action_potential_s2_t = sim_u_voxel[:,int(s2_t*dt)-1] # -1: the current values are not saved yet, so check the previous time frame
+                    h_s2_t = sim_h_voxel[:,int(s2_t*dt)-1] # -1: the current values are not saved yet, so check the previous time frame
 
-                    ap_min = 0.01
-                    ap_max = 0.02
-                    h_min = 0.23
-                    h_max = 0.30
                     id1 = np.where((action_potential_s2_t >= ap_min) & (action_potential_s2_t <= ap_max))[0]
                     id2 = np.where((h_s2_t >= h_min) & (h_s2_t <= h_max))[0]
                     s2_pacing_voxel_id_auto = np.intersect1d(id1, id2) # these voxels have a shape like a ring
 
                     # grab a portion of the s2 pacing sites, so that it's like a curvy line instead of a ring
-                    id = s2_pacing_voxel_id_auto[23] # find one voxel to start, pick a random one
-                    while id.size < s2_pacing_voxel_id_auto.size/2: # repeat several times so the amount of elements in id grows each time
+                    id = s2_pacing_voxel_id_auto[0] # find one voxel to start, pick a random one
+                    while id.size < s2_pacing_voxel_id_auto.size/3: # repeat several times to include more neighbors
                         neighbor_id = neighbor_id_2d[id, :] # add all the neighbors of the pacing voxel to be paced
                         neighbor_id = neighbor_id[neighbor_id != -1] # remove the -1s, which means no neighbors
-                        id = np.concatenate([np.atleast_1d(id), np.atleast_1d(neighbor_id)])
-                        id = np.intersect1d(id, s2_pacing_voxel_id_auto)
+                        id = np.concatenate([np.atleast_1d(id), np.atleast_1d(neighbor_id)]) # add the neighbors
+                        id = np.intersect1d(id, s2_pacing_voxel_id_auto) # make sure its within the original shape
 
                     s2_pacing_voxel_id = id
-
-                debug_flag = 0
-                if debug_flag == 1 and t == s2_t:
-                    print(np.array2string(s2_pacing_voxel_id, separator=', '))
 
                 J_stim[s2_pacing_voxel_id] = 20
 

@@ -85,14 +85,9 @@ elif do_flag == 0:
     electrogram_unipolar = np.load('result/electrogram_unipolar.npy')
     action_potential_phase = np.load('result/action_potential_phase.npy')
 
-# compute local activation time map
-action_potential_mesh = action_potential[voxel_for_each_vertex,:]
-t_start = 1
-cycle_length_percentage = 1 # use a number <1 when at a time instance, multiple cycles overlap
-lat, cl = codes.calculate_local_activation_time.execute_on_action_potential(t_start, action_potential_mesh, v_gate, cycle_length_percentage)
-# lat.shape = (number of mesh vertices,). 
-# cl.shape = (n x number of mesh vertices, ) where n depends on how many cycle length is there in the action potential
-
+#%%
+# display result
+# --------------------------------------------------
 debug_plot = 0
 if debug_plot == 1:
     # action potential
@@ -115,9 +110,6 @@ if debug_plot == 1:
 
     plt.show()
 
-#%%
-# display result
-# --------------------------------------------------
 debug_plot = 0
 if debug_plot == 1:
     voxel_id = 2000
@@ -128,7 +120,6 @@ if debug_plot == 1:
     plt.plot(ap_phase, 'g')
     plt.show()
 
-# %%
 # activation activation movie display using plotly, display using a browser
 # NOTE: if simulation is too long, it will not display, for example, 1000 ms simulation will display a blank page
 do_flag = 0
@@ -166,9 +157,9 @@ if do_flag == 1:
     codes.display_activation_movie.execute_on_volume(voxel, map_color)
 
 # activation phase movie display on vertex using matplotlib, with option to save as mp4
-do_flag = 1
+do_flag = 0
 if do_flag == 1: 
-    save_flag = 1 # 1: save movie as mp4. 0: do not save movie
+    save_flag = 0 # 1: save movie as mp4. 0: do not save movie
     starting_time = 0 # ms
     action_potential_phase_vertex = action_potential_phase[voxel_for_each_vertex, starting_time:]
     codes.display_activation_movie.execute_on_vertex_save_as_mp4(save_flag, action_potential_phase_vertex, vertex)
@@ -176,27 +167,34 @@ if do_flag == 1:
 # activation phase movie display on volume using matplotlib, with option to save as mp4
 do_flag = 0
 if do_flag == 1: 
-    save_flag = 1 # 1: save movie as mp4. 0: do not save movie
+    save_flag = 0 # 1: save movie as mp4. 0: do not save movie
     codes.display_activation_movie.execute_on_voxel_save_as_mp4(save_flag, action_potential_phase, voxel)
 
 debug_plot = 0
-if debug_plot == 1: # cycle length histogram
-    plt.figure()
-    plt.hist(cl, bins=10)
-    plt.xlabel('cycle length, ms')
-    plt.ylabel('counts')
-    plt.title('cycle length histogram')
-    plt.show()
-
-debug_plot = 0
 if debug_plot == 1: # local activation time map
+    # compute local activation time map
+    action_potential_mesh = action_potential[voxel_for_each_vertex,:]
+    t_start = 380
+    cycle_length_percentage = 1 # use a number <1 when at a time instance, multiple cycles overlap
+    lat, cl = codes.calculate_local_activation_time.execute_on_action_potential(t_start, action_potential_mesh, v_gate, cycle_length_percentage)
+    # lat.shape = (number of mesh vertices,). 
+    # cl.shape = (n x number of mesh vertices, ) where n depends on how many cycle length is there in the action potential
+
+    debug_plot = 0
+    if debug_plot == 1: # cycle length histogram
+        plt.figure()
+        plt.hist(cl, bins=10)
+        plt.xlabel('cycle length, ms')
+        plt.ylabel('counts')
+        plt.title('cycle length histogram')
+        plt.show()
+
     # convert local activation time into color
     data = lat
-    data_min = np.min(data)
-    data_max = np.max(data)
+    data_min = np.nanmin(data)
+    data_max = np.nanmax(data)
     data_threshold = data_min-0.1 # a little small than data_min, so that places with value of data_min will have color
     color = codes.convert_data_to_color.execute(data, data_min, data_max, data_threshold)
-
     fig = go.Figure(
         data = [
             go.Mesh3d(
