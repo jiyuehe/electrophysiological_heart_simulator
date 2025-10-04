@@ -10,4 +10,4 @@ from .tools import display_activation_movie
 from .simulation import compute_unipolar_electrogram
 
 from .archive import debug_display_of_s1s2_pacing_sites
-from .archive import create_pacing_signal # not use anymore
+from .archive import create_pacing_signal # no use anymore
