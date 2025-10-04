@@ -1,6 +1,13 @@
 #%%
+import os, sys
+script_dir = os.path.dirname(os.path.abspath(__file__)) # get the path of the current script
+two_folder_levels_up = os.path.abspath(os.path.join(script_dir, "..", ".."))
+data_path = two_folder_levels_up + "/data/"
+os.chdir(two_folder_levels_up) # change the working directory
+if two_folder_levels_up not in sys.path:
+    sys.path.insert(0, two_folder_levels_up) # Add the two-levels-up directory to sys.path
+
 import codes
-import os
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -11,10 +18,6 @@ import matplotlib.pyplot as plt
 # because if use the s1s2 u and h, the u already has the stimulus added to the s2 pacing sites, so the u and h vaules are not correct
 
 # load simulation 
-script_dir = os.path.dirname(os.path.abspath(__file__)) # get the path of the current script
-os.chdir(script_dir) # change the working directory
-
-data_path = script_dir + "/data/"
 voxel, neighbor_id_2d, Delta, voxel_for_each_vertex, vertex_for_each_voxel, vertex, face, vertex_flag = codes.processing.prepare_geometry.execute(data_path)
 voxel_flag = vertex_flag[vertex_for_each_voxel]
 
