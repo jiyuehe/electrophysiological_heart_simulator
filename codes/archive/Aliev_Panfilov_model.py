@@ -1,4 +1,12 @@
 # %%
+import os, sys
+script_dir = os.path.dirname(os.path.abspath(__file__)) # get the path of the current script
+two_folder_levels_up = os.path.abspath(os.path.join(script_dir, "..", ".."))
+data_path = two_folder_levels_up + "/data/"
+os.chdir(two_folder_levels_up) # change the working directory
+if two_folder_levels_up not in sys.path:
+    sys.path.insert(0, two_folder_levels_up) # Add the two-levels-up directory to sys.path
+
 import numpy as np
 import matplotlib.pyplot as plt
 import codes
