@@ -2,7 +2,7 @@
 # load libraries
 # --------------------------------------------------
 import codes
-import os
+import os, sys
 import numpy as np
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go # pip install plotly. For 3D interactive plot: triangular mesh, and activation movie
@@ -204,3 +204,6 @@ if debug_plot == 1: # local activation time map
         ]
     )
     fig.show()
+
+os._exit(0) # ensures the kernel dies. or even after the visual studio code is closed, there will still be heavy python process in CPU cause computer to heat up.
+#%%
