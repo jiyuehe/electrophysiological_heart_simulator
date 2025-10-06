@@ -23,7 +23,7 @@ voxel_flag = vertex_flag[vertex_for_each_voxel]
 # simulation parameters
 # --------------------------------------------------
 dt = 0.05 # ms. if dt is not small enough, simulation will result nan. Generally, if c <= 1.0, can use dt = 0.05
-t_final = 1000 # ms. NOTE: need to be at least long enough to have two pacings, or cannot compute phase from action potential
+t_final = 250 # ms. NOTE: need to be at least long enough to have two pacings, or cannot compute phase from action potential
 pacing_start_time = 1 # ms
 pacing_cycle_length = 250 # ms
 rotor_flag = 1 # 0: focal arrhythmia. 1: rotor arrhythmia via s1-s2 pacing
@@ -156,19 +156,14 @@ if do_flag == 1:
         map_color[n] = color
     codes.display_activation_movie.execute_on_volume(voxel, map_color)
 
-# activation phase movie display on vertex using matplotlib, with option to save as mp4
+# activation phase movie using matplotlib, with option to save as mp4
 do_flag = 0
 if do_flag == 1: 
-    save_flag = 0 # 1: save movie as mp4. 0: do not save movie
-    starting_time = 0 # ms
-    action_potential_phase_vertex = action_potential_phase[voxel_for_each_vertex, starting_time:]
-    codes.display_activation_movie.execute_on_vertex_save_as_mp4(save_flag, action_potential_phase_vertex, vertex)
-
-# activation phase movie display on volume using matplotlib, with option to save as mp4
-do_flag = 0
-if do_flag == 1: 
-    save_flag = 0 # 1: save movie as mp4. 0: do not save movie
-    codes.display_activation_movie.execute_on_voxel_save_as_mp4(save_flag, action_potential_phase, voxel)
+    save_flag = 1 # 1: save movie as mp4. 0: do not save movie
+    starting_time = 190 # ms
+    movie_data = action_potential_phase[voxel_for_each_vertex, starting_time:] # display on vertices
+    # movie_data = action_potential_phase[:, starting_time:] # display on voxels
+    codes.display_activation_movie.execute_on_voxel_save_as_mp4(save_flag, movie_data, vertex)
 
 debug_plot = 0
 if debug_plot == 1: # local activation time map
