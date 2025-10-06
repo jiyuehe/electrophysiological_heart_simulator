@@ -118,6 +118,15 @@ if debug_plot == 1:
 
     plt.show()
 
+# activation phase movie using matplotlib, with option to save as mp4
+do_flag = 1
+if do_flag == 1: 
+    save_flag = 0 # 1: save movie as mp4. 0: do not save movie
+    starting_time = 190 # ms
+    movie_data = action_potential_phase[voxel_for_each_vertex, starting_time:] # display on vertices
+    # movie_data = action_potential_phase[:, starting_time:] # display on voxels
+    codes.display_activation_movie.execute_on_voxel_save_as_mp4(save_flag, movie_data, vertex)
+
 # activation activation movie display using plotly, display using a browser, has a time frame slider
 # NOTE: if data is too large, it will not display. for example, 1000 ms simulation will display only a blank page
 do_flag = 0
@@ -146,15 +155,6 @@ if do_flag == 1:
         codes.display_activation_movie.execute_on_mesh(vertex, face, map_color)
     elif option == 2:
         codes.display_activation_movie.execute_on_volume(voxel, map_color)
-
-# activation phase movie using matplotlib, with option to save as mp4
-do_flag = 0
-if do_flag == 1: 
-    save_flag = 1 # 1: save movie as mp4. 0: do not save movie
-    starting_time = 190 # ms
-    movie_data = action_potential_phase[voxel_for_each_vertex, starting_time:] # display on vertices
-    # movie_data = action_potential_phase[:, starting_time:] # display on voxels
-    codes.display_activation_movie.execute_on_voxel_save_as_mp4(save_flag, movie_data, vertex)
 
 debug_plot = 0
 if debug_plot == 1: # local activation time map

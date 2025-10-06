@@ -125,27 +125,26 @@ def execute_CPU_parallel(neighbor_id_2d, voxel_flag, n_voxel, dt, t_final, P_2d,
             J_stim[s1_pacing_voxel_id] = 20
 
         # s2 pacing
-        if rotor_flag == 1:
-            if t >= s2_t and t <= s2_t + pacing_duration:
-                if method_find_s2_pacing_sites == 2: # automatically find out s2 pacing sites
-                    action_potential_s2_t = sim_u_voxel[:,int(s2_t*dt)-1] # -1: the current values are not saved yet, so check the previous time frame
-                    h_s2_t = sim_h_voxel[:,int(s2_t*dt)-1] # -1: the current values are not saved yet, so check the previous time frame
+        if rotor_flag == 1 and t >= s2_t and t <= s2_t + pacing_duration:
+            if method_find_s2_pacing_sites == 2: # automatically find out s2 pacing sites
+                action_potential_s2_t = sim_u_voxel[:,int(s2_t*dt)-1] # -1: the current values are not saved yet, so check the previous time frame
+                h_s2_t = sim_h_voxel[:,int(s2_t*dt)-1] # -1: the current values are not saved yet, so check the previous time frame
 
-                    id1 = np.where((action_potential_s2_t >= ap_min) & (action_potential_s2_t <= ap_max))[0]
-                    id2 = np.where((h_s2_t >= h_min) & (h_s2_t <= h_max))[0]
-                    s2_pacing_voxel_id_auto = np.intersect1d(id1, id2) # these voxels have a shape like a ring
+                id1 = np.where((action_potential_s2_t >= ap_min) & (action_potential_s2_t <= ap_max))[0]
+                id2 = np.where((h_s2_t >= h_min) & (h_s2_t <= h_max))[0]
+                s2_pacing_voxel_id_auto = np.intersect1d(id1, id2) # these voxels have a shape like a ring
 
-                    # grab a portion of the s2 pacing sites, so that it's like a curvy line instead of a ring
-                    id = s2_pacing_voxel_id_auto[0] # find one voxel to start, pick a random one
-                    while id.size < s2_pacing_voxel_id_auto.size/3: # repeat several times to include more neighbors
-                        neighbor_id = neighbor_id_2d[id, :] # add all the neighbors of the pacing voxel to be paced
-                        neighbor_id = neighbor_id[neighbor_id != -1] # remove the -1s, which means no neighbors
-                        id = np.concatenate([np.atleast_1d(id), np.atleast_1d(neighbor_id)]) # add the neighbors
-                        id = np.intersect1d(id, s2_pacing_voxel_id_auto) # make sure its within the original shape
+                # grab a portion of the s2 pacing sites, so that it's like a curvy line instead of a ring
+                id = s2_pacing_voxel_id_auto[0] # find one voxel to start, pick a random one
+                while id.size < s2_pacing_voxel_id_auto.size/3: # repeat several times to include more neighbors
+                    neighbor_id = neighbor_id_2d[id, :] # add all the neighbors of the pacing voxel to be paced
+                    neighbor_id = neighbor_id[neighbor_id != -1] # remove the -1s, which means no neighbors
+                    id = np.concatenate([np.atleast_1d(id), np.atleast_1d(neighbor_id)]) # add the neighbors
+                    id = np.intersect1d(id, s2_pacing_voxel_id_auto) # make sure its within the original shape
 
-                    s2_pacing_voxel_id = id
+                s2_pacing_voxel_id = id
 
-                J_stim[s2_pacing_voxel_id] = 20
+            J_stim[s2_pacing_voxel_id] = 20
 
         u_next, h_next = compute_voxel(u_current, h_current, P_2d, neighbor_id_2d_2, J_stim, dt, Delta, model_flag)
         
