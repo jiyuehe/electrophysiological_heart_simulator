@@ -108,41 +108,28 @@ if debug_plot == 1:
     plt.title('examples of simulated unipolar electrogram')
     plt.savefig('result/unipolar_electrogram.png')
 
-    plt.show()
-
-debug_plot = 0
-if debug_plot == 1:
+    # action potential phase, for activation movie display
     voxel_id = 2000
     ap = action_potential[voxel_id,:]
     ap_phase = action_potential_phase[voxel_id,:]
     plt.figure()
     plt.plot(ap, 'b')
     plt.plot(ap_phase, 'g')
+
     plt.show()
 
-# activation activation movie display using plotly, display using a browser
-# NOTE: if simulation is too long, it will not display, for example, 1000 ms simulation will display a blank page
+# activation activation movie display using plotly, display using a browser, has a time frame slider
+# NOTE: if data is too large, it will not display. for example, 1000 ms simulation will display only a blank page
 do_flag = 0
 if do_flag == 1:
-    # activation activation movie display on mesh using plotly
-    movie_data = action_potential_phase[voxel_for_each_vertex,:]
-    data_min = np.min(movie_data)
-    data_max = np.max(movie_data)
-    data_threshold = data_min
-    map_color = {}
-    n_time = movie_data.shape[1]
-    for n in range(n_time):
-        if (n % (n_time//5)) == 0:
-            print(f'compute color map {n/n_time*100:.1f}%')
-        data = movie_data[:, n]
-        color = codes.convert_data_to_color.execute(data, data_min, data_max, data_threshold)
-        map_color[n] = color
-    codes.display_activation_movie.execute_on_mesh(vertex, face, map_color)
+    option = 1 # 1: display on mesh. 2: display on voxle
 
-# activation movie display on volume using plotly, display using a browser
-do_flag = 0
-if do_flag == 1:
-    movie_data = action_potential_phase[:,0:50] # if too large of data, will not display
+    if option == 1:
+        movie_data = action_potential_phase[voxel_for_each_vertex,:] # grab vertex data
+    elif option == 2:
+        time_range = range(0,50) # range(start, stop) generates numbers from start up to (but not including) stop.
+        movie_data = action_potential_phase[:,time_range] # if data is too large, will not display, thus trim the data
+    
     data_min = np.min(movie_data)
     data_max = np.max(movie_data)
     data_threshold = data_min
@@ -154,7 +141,11 @@ if do_flag == 1:
         data = movie_data[:, n]
         color = codes.convert_data_to_color.execute(data, data_min, data_max, data_threshold)
         map_color[n] = color
-    codes.display_activation_movie.execute_on_volume(voxel, map_color)
+
+    if option == 1:
+        codes.display_activation_movie.execute_on_mesh(vertex, face, map_color)
+    elif option == 2:
+        codes.display_activation_movie.execute_on_volume(voxel, map_color)
 
 # activation phase movie using matplotlib, with option to save as mp4
 do_flag = 0
