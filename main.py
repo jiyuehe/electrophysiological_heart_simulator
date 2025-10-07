@@ -43,12 +43,6 @@ if model_flag == 1: # Mitchell-Schaeffer
         'c_voxel': c * np.ones(n_voxel),
         'v_gate_voxel': np.ones(n_voxel) * v_gate
     }
-    # heart_model_parameter['tau_in_voxel'] = np.ones(n_voxel) * 0.3
-    # heart_model_parameter['tau_out_voxel'] = np.ones(n_voxel) * 6
-    # heart_model_parameter['tau_open_voxel'] = np.ones(n_voxel) * 120
-    # heart_model_parameter['tau_close_voxel'] = np.ones(n_voxel) * 80
-    # heart_model_parameter['c_voxel'] = c * np.ones(n_voxel)
-    # heart_model_parameter[] = np.ones(n_voxel) * v_gate
 elif model_flag == 2: # Aliev–Panfilov
     c = 0.1 # diffusion coefficient
     v_gate = 0.13
