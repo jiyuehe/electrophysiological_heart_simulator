@@ -138,7 +138,7 @@ def execute_CPU_parallel(neighbor_id_2d, voxel_flag, n_voxel, dt, t_final, P_2d,
                 id2 = np.where((h_s2_t >= h_min) & (h_s2_t <= h_max))[0]
                 s2_pacing_voxel_id_auto = np.intersect1d(id1, id2) # these voxels could have a ring-like shape, which cannot generate rotor
 
-                # grab a portion of the shape, so it becomes like a curvy patch (instead of a ring) so waves can rotate at the edges of the patch
+                # grab a portion of the shape, so it becomes like a curvy patch (instead of a ring), so that waves can rotate at the edges of the patch
                 id = s2_pacing_voxel_id_auto[0] # find one voxel to start, pick a random one
                 while id.size < s2_pacing_voxel_id_auto.size * s2_region_size_factor: # repeat several times to include more neighbors
                     neighbor_id = neighbor_id_2d[id, :] # add all the neighbors of the pacing voxel to be paced
