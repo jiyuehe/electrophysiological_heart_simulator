@@ -78,13 +78,12 @@ def execute_CPU_parallel(neighbor_id_2d, voxel_flag, n_voxel, dt, t_final, P_2d,
     method_find_s2_pacing_sites = 2 # 1: use manually assigned s2 pacing sites. 2: automatically find out s2 pacing sites
 
     if rotor_flag == 0:
-        s1_pacing_voxel_id = np.where(voxel_flag == 1)[0] # can use a user interface to visually assign the pacing site
         s2_pacing_voxel_id = []
     elif rotor_flag == 1:
         if method_find_s2_pacing_sites == 1:
             s1_pacing_voxel_id = np.where(voxel_flag == 1)[0]
-            s2_pacing_voxel_id = np.where(voxel_flag == 2)[0]
 
+            s2_pacing_voxel_id = np.where(voxel_flag == 2)[0]
             neighbor_id = neighbor_id_2d[s2_pacing_voxel_id, :] # add all the neighbors of the pacing voxel to be paced
             neighbor_id = neighbor_id[neighbor_id != -1] # remove the -1s, which means no neighbors
             s2_pacing_voxel_id = np.concatenate([s2_pacing_voxel_id, neighbor_id])
@@ -140,7 +139,7 @@ def execute_CPU_parallel(neighbor_id_2d, voxel_flag, n_voxel, dt, t_final, P_2d,
 
                 # grab a portion of the shape, so it becomes like a curvy patch (instead of a ring) so waves can rotate at the edges of the patch
                 id = s2_pacing_voxel_id_auto[0] # find one voxel to start, pick a random one
-                while id.size < s2_pacing_voxel_id_auto.size/3: # repeat several times to include more neighbors
+                while id.size < s2_pacing_voxel_id_auto.size * 0.8: # repeat several times to include more neighbors
                     neighbor_id = neighbor_id_2d[id, :] # add all the neighbors of the pacing voxel to be paced
                     neighbor_id = neighbor_id[neighbor_id != -1] # remove the -1s, which means no neighbors
                     id = np.concatenate([np.atleast_1d(id), np.atleast_1d(neighbor_id)]) # add the neighbors

@@ -28,6 +28,7 @@ pacing_start_time = 1 # ms
 pacing_cycle_length = 250 # ms
 rotor_flag = 0 # 0: focal arrhythmia. 1: rotor arrhythmia via s1-s2 pacing
 model_flag = 1 # 1: Mitchell-Schaeffer, 2: Aliev–Panfilov
+compute_electrogram_flag = 0 # 1: compute electrogram. 0: do not compute electrogram
 
 # parameters of the heart model
 n_voxel = voxel.shape[0] 
@@ -63,13 +64,13 @@ if do_flag == 1:
 
     # rotor arrhythmia parameters
     rotor_parameters = {
-        "s1_pacing_voxel_id": 54000, # location of s1 pacing site
+        "s1_pacing_voxel_id": 30000, # location of s1 pacing site
         "s1_t": 0, # ms. time of s1 pacing
-        "s1_s2_delta_t": 200 / dt, # ms. time interval between s1 and s2
+        "s1_s2_delta_t": 205 / dt, # ms. time interval between s1 and s2
         "ap_min": 0.002, # a threshold value of action potential 
-        "ap_max": 0.020, # a threshold value of action potential 
-        "h_min": 0.20, # a threshold value of gating variable
-        "h_max": 0.30 # a threshold value of gating variable
+        "ap_max": 0.026, # a threshold value of action potential 
+        "h_min": 0.222, # a threshold value of gating variable
+        "h_max": 0.335 # a threshold value of gating variable
     }
 
     # compute simulation
@@ -77,10 +78,11 @@ if do_flag == 1:
     np.save('result/action_potential.npy', action_potential)
     np.save('result/h.npy', h)
 
-    # compute unipolar electrogram    
-    electrode_xyz = voxel[electrode_id, :]
-    electrogram_unipolar = codes.compute_unipolar_electrogram.execute_CPU_parallel(electrode_xyz, voxel, D0, parameter['c_voxel'], action_potential, Delta, neighbor_id_2d)
-    np.save('result/electrogram_unipolar.npy', electrogram_unipolar)
+    # compute unipolar electrogram
+    if compute_electrogram_flag == 1:
+        electrode_xyz = voxel[electrode_id, :]
+        electrogram_unipolar = codes.compute_unipolar_electrogram.execute_CPU_parallel(electrode_xyz, voxel, D0, parameter['c_voxel'], action_potential, Delta, neighbor_id_2d)
+        np.save('result/electrogram_unipolar.npy', electrogram_unipolar)
 
     # create phase from action potential
     action_potential_phase = np.zeros_like(action_potential)
@@ -93,7 +95,8 @@ if do_flag == 1:
 elif do_flag == 0:
     action_potential = np.load('result/action_potential.npy')
     h = np.load('result/h.npy')
-    electrogram_unipolar = np.load('result/electrogram_unipolar.npy')
+    if compute_electrogram_flag == 1:
+        electrogram_unipolar = np.load('result/electrogram_unipolar.npy')
     action_potential_phase = np.load('result/action_potential_phase.npy')
 
 #%%

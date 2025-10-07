@@ -21,7 +21,8 @@ import matplotlib.pyplot as plt
 # 3. run this python file to find out the u and h threshold.
 
 s1_t =  0
-s2_t = s1_t + 200 
+s2_t = s1_t + 205 
+
 
 #%%
 # --------------------------------------------------
@@ -31,6 +32,7 @@ voxel_flag = vertex_flag[vertex_for_each_voxel]
 action_potential = np.load('result/action_potential.npy')
 h = np.load('result/h.npy')
 
+'''
 # the manually assigned pacing sites
 s1_pacing_voxel_id = np.where(voxel_flag == 1)[0]
 s2_pacing_voxel_id = np.where(voxel_flag == 2)[0]
@@ -62,11 +64,12 @@ plt.title('b:action potential, g:h')
 
 # plot the manually assigned pacing sites
 codes.debug_display_of_s1s2_pacing_sites.execute(voxel, s1_pacing_voxel_id, s2_pacing_voxel_id)
+'''
 
 #%% automatically find s2 pacing voxels
 # --------------------------------------------------
 # s1 pacing site
-s1_pacing_voxel_id = 54000
+s1_pacing_voxel_id = 30000
 neighbor_id = neighbor_id_2d[s1_pacing_voxel_id, :] # add all the neighbors of the pacing voxel to be paced
 neighbor_id = neighbor_id[neighbor_id != -1] # remove the -1s, which means no neighbors
 s1_pacing_voxel_id = np.array([s1_pacing_voxel_id]) # if s1_pacing_voxel_id is just a number, np.concatenate won't work, that's why convert it to 1d array to ensure no error
@@ -92,7 +95,7 @@ codes.debug_display_of_s1s2_pacing_sites.execute(voxel, s1_pacing_voxel_id, s2_p
 
 # grab a portion of the s2 pacing sites, so that it's like a curvy line instead of a ring
 id = s2_pacing_voxel_id_auto[0] # find one voxel to start
-while id.size < s2_pacing_voxel_id_auto.size/3: # repeat several times to include more neighbors
+while id.size < s2_pacing_voxel_id_auto.size/2: # repeat several times to include more neighbors
     neighbor_id = neighbor_id_2d[id, :] # add all the neighbors of the pacing voxel to be paced
     neighbor_id = neighbor_id[neighbor_id != -1] # remove the -1s, which means no neighbors
     id = np.concatenate([np.atleast_1d(id), np.atleast_1d(neighbor_id)]) # add the neighbors
