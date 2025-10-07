@@ -121,8 +121,8 @@ def execute_on_voxel_save_as_mp4(save_flag, movie_data, voxel): # activation pha
         ax.set_title(f'Time: {n}/{n_time} ms') # set title with current time step
 
         # capture current view angles
-        elev = ax.elev  # elevation angle
-        azim = ax.azim  # azimuth angle
+        elev = ax.elev # elevation angle
+        azim = ax.azim # azimuth angle
         view_angles[n] = {'elev': elev, 'azim': azim}
 
         plt.pause(pause_interval)
