@@ -72,13 +72,14 @@ if do_flag == 1:
 
     # rotor arrhythmia parameters
     rotor_parameters = {
-        "s1_pacing_voxel_id": 30000, # location of s1 pacing site
+        "s1_pacing_voxel_id": 23403, # location of s1 pacing site
         "s1_t": 0, # ms. time of s1 pacing
         "s1_s2_delta_t": 205 / dt, # ms. time interval between s1 and s2
         "ap_min": 0.002, # a threshold value of action potential 
         "ap_max": 0.026, # a threshold value of action potential 
         "h_min": 0.222, # a threshold value of gating variable
-        "h_max": 0.335 # a threshold value of gating variable
+        "h_max": 0.335, # a threshold value of gating variable
+        "s2_region_size_factor": 0.5 # a less than 1 multiplication factor to reduce s2 pacing region size
     }
 
     # compute simulation
