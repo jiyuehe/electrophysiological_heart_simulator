@@ -23,7 +23,7 @@ voxel_flag = vertex_flag[vertex_for_each_voxel]
 # simulation parameters
 # --------------------------------------------------
 dt = 0.05 # ms. if dt is not small enough, simulation will result nan. Generally, if c <= 1.0, can use dt = 0.05
-t_final = 250 # ms. NOTE: need to be at least long enough to have two pacings, or cannot compute phase from action potential
+t_final = 1000 # ms. NOTE: need to be at least long enough to have two pacings, or cannot compute phase from action potential
 pacing_start_time = 1 # ms
 pacing_cycle_length = 250 # ms
 rotor_flag = 1 # 0: focal arrhythmia. 1: rotor arrhythmia via s1-s2 pacing

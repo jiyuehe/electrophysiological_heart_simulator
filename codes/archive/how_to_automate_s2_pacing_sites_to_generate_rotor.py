@@ -24,12 +24,6 @@ import matplotlib.pyplot as plt
 # the time interval after s1 pacing
 s2_t = 205 
 
-# the min max of the action potential and h determines the shape of the s2 pacing region
-ap_min = 0.002 # reference to np.min(action_potential_s2), for example 0.002058292390382148
-ap_max = 0.026 # reference to np.max(action_potential_s2, for example 0.026245714457469753
-h_min  = 0.222 # reference to np.min(h_s2), for example 0.22153149064066427
-h_max  = 0.335 # reference to np.max(h_s2), for example 0.33510020083247455
-
 #%%
 # --------------------------------------------------
 # load the rotor simulation figured out by manual trials and errors
@@ -69,6 +63,12 @@ plt.title('b:action potential, g:h')
 
 # plot the manually assigned pacing sites
 codes.debug_display_of_s1s2_pacing_sites.execute(voxel, s1_pacing_voxel_id, s2_pacing_voxel_id)
+
+# the min max of the action potential and h determines the shape of the s2 pacing region
+ap_min = 0.002 # reference to np.min(action_potential_s2), for example 0.002058292390382148
+ap_max = 0.026 # reference to np.max(action_potential_s2, for example 0.026245714457469753
+h_min  = 0.222 # reference to np.min(h_s2), for example 0.22153149064066427
+h_max  = 0.335 # reference to np.max(h_s2), for example 0.33510020083247455
 
 #%%
 # --------------------------------------------------
