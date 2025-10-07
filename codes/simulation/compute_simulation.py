@@ -148,6 +148,10 @@ def execute_CPU_parallel(neighbor_id_2d, voxel_flag, n_voxel, dt, t_final, P_2d,
 
                 s2_pacing_voxel_id = id
 
+                # if t == s2_t:
+                #     np.set_printoptions(threshold=np.inf) # disable summarization, print out all elements
+                #     print(", ".join(map(str, s2_pacing_voxel_id))) # "," in between elements
+
             J_stim[s2_pacing_voxel_id] = 20
 
         u_next, h_next = compute_voxel(u_current, h_current, P_2d, neighbor_id_2d_2, J_stim, dt, Delta, model_flag)
