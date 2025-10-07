@@ -20,9 +20,8 @@ import matplotlib.pyplot as plt
 #    thus cannot find the correct u and h threshold for identifying a s2 pacing region.
 # 3. run this python file to find out the u and h threshold.
 
-# parameters for automatically find out s2 pacing regions. changes of these parameters will effect the rotor (location, shape, etc)
-# the time interval after s1 pacing
-s2_t = 205 
+s1_t =  0
+s2_t = s1_t + 200 
 
 #%%
 # --------------------------------------------------
@@ -64,19 +63,25 @@ plt.title('b:action potential, g:h')
 # plot the manually assigned pacing sites
 codes.debug_display_of_s1s2_pacing_sites.execute(voxel, s1_pacing_voxel_id, s2_pacing_voxel_id)
 
-# the min max of the action potential and h determines the shape of the s2 pacing region
-ap_min = 0.002 # reference to np.min(action_potential_s2), for example 0.002058292390382148
-ap_max = 0.026 # reference to np.max(action_potential_s2, for example 0.026245714457469753
-h_min  = 0.222 # reference to np.min(h_s2), for example 0.22153149064066427
-h_max  = 0.335 # reference to np.max(h_s2), for example 0.33510020083247455
-
-#%%
+#%% automatically find s2 pacing voxels
 # --------------------------------------------------
-# automatically find s2 pacing voxels
+# s1 pacing site
+s1_pacing_voxel_id = 54000
+neighbor_id = neighbor_id_2d[s1_pacing_voxel_id, :] # add all the neighbors of the pacing voxel to be paced
+neighbor_id = neighbor_id[neighbor_id != -1] # remove the -1s, which means no neighbors
+s1_pacing_voxel_id = np.array([s1_pacing_voxel_id]) # if s1_pacing_voxel_id is just a number, np.concatenate won't work, that's why convert it to 1d array to ensure no error
+s1_pacing_voxel_id = np.concatenate([s1_pacing_voxel_id, neighbor_id])
+s1_pacing_voxel_id = np.unique(s1_pacing_voxel_id)
+
+# the min max of the action potential and h determines the shape of the s2 pacing region
+ap_min = 0.002 # reference to np.min(action_potential_s2)
+ap_max = 0.026 # reference to np.max(action_potential_s2
+h_min  = 0.222 # reference to np.min(h_s2)
+h_max  = 0.335 # reference to np.max(h_s2)
+
 action_potential_s2_t = action_potential[:,s2_t]
 h_s2_t = h[:,s2_t]
 
-# automatically find s2 pacing sites
 id1 = np.where((action_potential_s2_t >= ap_min) & (action_potential_s2_t <= ap_max))[0]
 id2 = np.where((h_s2_t >= h_min) & (h_s2_t <= h_max))[0]
 s2_pacing_voxel_id_auto = np.intersect1d(id1, id2) # these voxels have a shape like a ring

@@ -23,10 +23,10 @@ voxel_flag = vertex_flag[vertex_for_each_voxel]
 # simulation parameters
 # --------------------------------------------------
 dt = 0.05 # ms. if dt is not small enough, simulation will result nan. Generally, if c <= 1.0, can use dt = 0.05
-t_final = 1000 # ms. NOTE: need to be at least long enough to have two pacings, or cannot compute phase from action potential
+t_final = 800 # ms. NOTE: need to be at least long enough to have two pacings, or cannot compute phase from action potential
 pacing_start_time = 1 # ms
 pacing_cycle_length = 250 # ms
-rotor_flag = 1 # 0: focal arrhythmia. 1: rotor arrhythmia via s1-s2 pacing
+rotor_flag = 0 # 0: focal arrhythmia. 1: rotor arrhythmia via s1-s2 pacing
 model_flag = 1 # 1: Mitchell-Schaeffer, 2: Aliev–Panfilov
 
 # parameters of the heart model
@@ -61,8 +61,19 @@ if do_flag == 1:
     # compute heart model equation parts
     P_2d = codes.compute_equation_parts.execute(n_voxel, D0, neighbor_id_2d, parameter, model_flag)
 
+    # rotor arrhythmia parameters
+    rotor_parameters = {
+        "s1_pacing_voxel_id": 54000, # location of s1 pacing site
+        "s1_t": 0, # ms. time of s1 pacing
+        "s1_s2_delta_t": 200 / dt, # ms. time interval between s1 and s2
+        "ap_min": 0.002, # a threshold value of action potential 
+        "ap_max": 0.020, # a threshold value of action potential 
+        "h_min": 0.20, # a threshold value of gating variable
+        "h_max": 0.30 # a threshold value of gating variable
+    }
+
     # compute simulation
-    action_potential, h = codes.compute_simulation.execute_CPU_parallel(neighbor_id_2d, voxel_flag, n_voxel, dt, t_final, P_2d, Delta, model_flag, rotor_flag)
+    action_potential, h = codes.compute_simulation.execute_CPU_parallel(neighbor_id_2d, voxel_flag, n_voxel, dt, t_final, P_2d, Delta, model_flag, rotor_flag, rotor_parameters)
     np.save('result/action_potential.npy', action_potential)
     np.save('result/h.npy', h)
 
@@ -121,9 +132,10 @@ if debug_plot == 1:
 # activation phase movie using matplotlib, with option to save as mp4
 do_flag = 1
 if do_flag == 1: 
-    save_flag = 0 # 1: save movie as mp4. 0: do not save movie
+    save_flag = 1 # 1: save movie as mp4. 0: do not save movie
     starting_time = 190 # ms
-    movie_data = action_potential_phase[voxel_for_each_vertex, starting_time:] # display on vertices
+    ending_time = 450 # ms
+    movie_data = action_potential_phase[voxel_for_each_vertex, starting_time:ending_time] # display on vertices
     # movie_data = action_potential_phase[:, starting_time:] # display on voxels
     codes.display_activation_movie.execute_on_voxel_save_as_mp4(save_flag, movie_data, vertex)
 
