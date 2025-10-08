@@ -9,5 +9,5 @@ from .tools import convert_data_to_color
 from .tools import display_activation_movie
 from .simulation import compute_unipolar_electrogram
 
-from .archive import debug_display_of_s1s2_pacing_sites
-from .archive import create_pacing_signal # no use anymore
+# codes in archive folder are some historical codes, they are not used anymore, but nice to have as some reference
+from .archive import create_pacing_signal
