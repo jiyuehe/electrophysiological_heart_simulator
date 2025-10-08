@@ -6,20 +6,18 @@ data_path = two_folder_levels_up + "/data/"
 os.chdir(two_folder_levels_up) # change the working directory
 if two_folder_levels_up not in sys.path:
     sys.path.insert(0, two_folder_levels_up) # Add the two-levels-up directory to sys.path
-
+    
 import codes
-import numpy as np
-import matplotlib.pyplot as plt
+import numpy as np # pip install numpy
+import matplotlib.pyplot as plt # pip install matplotlib
 from matplotlib.path import Path
 
 #%%
 class MeshSelector:
-    def __init__(self, vertices, faces, data_path, vertex_flag, vertex_color):
-        self.vertices = vertices
-        self.faces = faces
-        self.data_path = data_path
-        self.vertex_flag = vertex_flag
-        self.vertex_color = vertex_color
+    def __init__(self, node, node_flag, folder_path):
+        self.node = node
+        self.node_flag = node_flag
+        self.folder_path = folder_path
         
         # Define color map for different flags
         color_map = ['red', 'green', 'blue', 'yellow', 'cyan', 'magenta', 'orange', 'purple']
@@ -32,21 +30,14 @@ class MeshSelector:
         # Create figure and 3D axis
         self.fig = plt.figure(figsize=(12, 8))
         self.ax = self.fig.add_subplot(111, projection='3d')
-        
-        # Plot the mesh
-        self.mesh = self.ax.plot_trisurf(
-            self.vertices[:, 0], self.vertices[:, 1], self.vertices[:, 2],
-            triangles=self.faces,
-            linewidth=0.2, edgecolor='gray', alpha=0, color='white'
-        )
 
-        self.flagged_scatter = self.ax.scatter([], [], [], c=[], s=5, depthshade=False, marker='.')
+        self.scatter = self.ax.scatter(self.node[:, 0], self.node[:, 1], self.node[:, 2], c='grey', s=5, depthshade=False, marker='.')
 
         self.ax.set_xlabel('X')
         self.ax.set_ylabel('Y')
         self.ax.set_zlabel('Z')
         codes.set_axes_equal.execute(self.ax)
-        self.ax.set_title('3D Mesh Vertex Selection Tool')
+        self.ax.set_title('3D Node Selection Tool')
         self.update_display()
 
         # Connect mouse events
@@ -67,7 +58,7 @@ class MeshSelector:
 
         # Instructions
         self.fig.text(0.5, 0.02, 
-            'Press "a" to toggle Rotate/Select mode | Mouse left drag: Add vertices to selection | Right click: Clear all selected',
+            'Press "a" to toggle Rotate/Select mode | Mouse left drag: Add nodes to selection | Right click: Clear all selected',
             ha='center', fontsize=10, bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
         
         self.mode_text = self.fig.text(0.5, 0.95, 'Mode: Rotate (press "a" change to Select)', 
@@ -77,19 +68,15 @@ class MeshSelector:
         plt.show()
 
     def update_display(self):
-        # Highlight selected vertices (where flag > 0) with different colors
-        flagged_idx = np.where(self.vertex_flag > 0)[0]
-        if len(flagged_idx) == 0:
-            self.flagged_scatter._offsets3d = ([], [], [])
-            self.flagged_scatter.set_facecolor([])
-        else:
-            verts = self.vertices[flagged_idx]
-            print(verts)
-            colors = []
-            for idx in flagged_idx:
-                colors.append(self.color_map[(self.vertex_flag[idx]-1) % len(self.color_map)])
-            self.flagged_scatter._offsets3d = (verts[:,0], verts[:,1], verts[:,2])
-            self.flagged_scatter.set_color(colors)
+        N = self.node.shape[0] # number of nodes
+        colors = ['grey'] * N # color for those not selected
+
+        # assign colors to different flags
+        flagged_id = np.where(self.node_flag > 0)[0]
+        for id in flagged_id:
+            colors[id] = self.color_map[(self.node_flag[id] - 1) % len(self.color_map)]
+
+        self.scatter.set_color(colors)
 
     def on_press(self, event):
         # Handle mouse press events
@@ -100,7 +87,7 @@ class MeshSelector:
             self.is_selecting = True
             self.selection_polygon = [(event.xdata, event.ydata)]
         elif event.button == 3: # Right click - clear all selections
-            self.vertex_flag = np.zeros(len(self.vertices), dtype=int)
+            self.node_flag = np.zeros(len(self.node), dtype=int)
             self.selection_polygon = []
             self.update_display()
             print("All selections cleared")
@@ -130,8 +117,8 @@ class MeshSelector:
         # Close the polygon
         self.selection_polygon.append(self.selection_polygon[0])
         
-        # Project vertices to 2D screen coordinates and update flags
-        self.select_vertices_in_polygon()
+        # Project node to 2D screen coordinates and update flags
+        self.select_node_in_polygon()
         
         # Clear polygon and redraw
         self.selection_polygon = []
@@ -146,7 +133,7 @@ class MeshSelector:
                 self.mode_text.set_bbox(dict(boxstyle='round', facecolor='yellow', alpha=0.8))
                 # Disable 3D rotation
                 self.ax.disable_mouse_rotation()
-                print("Selection mode ON - Click and drag to add vertices to selection")
+                print("Selection mode ON - Click and drag to add nodes to selection")
             else:
                 self.mode_text.set_text('Mode: Rotate (press "a" change to Select)')
                 self.mode_text.set_bbox(dict(boxstyle='round', facecolor='lightgreen', alpha=0.8))
@@ -157,17 +144,17 @@ class MeshSelector:
     
     def save_selection(self, event):
         # Save vertex flag array to a numpy file
-        num_selected = np.sum(self.vertex_flag)
+        num_selected = np.sum(self.node_flag)
         if num_selected == 0:
-            print("No vertices selected to save!")
+            print("No node selected to save!")
             return
         
-        filename = 'vertex_flag.npy'
-        np.save(self.data_path + filename, self.vertex_flag)
-        print(f"Saved vertex flags to '{filename}' ({num_selected} vertices selected)")
+        filename = 'node_flag.npy'
+        np.save(self.folder_path + filename, self.node_flag)
+        print(f"Saved vertex flags to '{filename}' ({num_selected} nodes selected)")
     
-    def select_vertices_in_polygon(self):
-        # Select vertices that fall within the drawn polygon (front face only)
+    def select_node_in_polygon(self):
+        # Select node that fall within the drawn polygon (front face only)
         # and set their flags to the current flag value (accumulative)
         if len(self.selection_polygon) < 3:
             return
@@ -178,10 +165,10 @@ class MeshSelector:
         # Get the current 3D to 2D projection matrix
         proj_matrix = self.ax.get_proj()
         
-        # Transform 3D vertices to 2D display coordinates and get depths
-        vertices_2d = []
+        # Transform 3D node to 2D display coordinates and get depths
+        node_2d = []
         depths = []
-        for vertex in self.vertices:
+        for vertex in self.node:
             vec = np.array([vertex[0], vertex[1], vertex[2], 1.0])
             proj = proj_matrix @ vec
             
@@ -194,17 +181,17 @@ class MeshSelector:
                 y_2d = proj[1]
                 z_depth = proj[2]
             
-            vertices_2d.append([x_2d, y_2d])
+            node_2d.append([x_2d, y_2d])
             depths.append(z_depth)
         
-        vertices_2d = np.array(vertices_2d)
+        node_2d = np.array(node_2d)
         depths = np.array(depths)
         
         # Create a path from the selection polygon
         path = Path(self.selection_polygon)
         
-        # Check which vertices are inside the polygon
-        inside = path.contains_points(vertices_2d)
+        # Check which node are inside the polygon
+        inside = path.contains_points(node_2d)
         
         # For each vertex inside, check if it's visible (front-facing)
         inside_indices = np.where(inside)[0]
@@ -214,17 +201,46 @@ class MeshSelector:
             front_facing = np.abs(depths - min_depth) < tol
             inside = inside & front_facing
         
-        # Update vertex flags for newly selected vertices
-        newly_selected = np.sum(inside & (self.vertex_flag == 0))
-        self.vertex_flag[inside] = flag_value
+        # Update vertex flags for newly selected node
+        newly_selected = np.sum(inside & (self.node_flag == 0))
+        self.node_flag[inside] = flag_value
         
-        total_selected = np.sum(self.vertex_flag > 0)
-        print(f"Set {np.sum(inside)} vertices to flag {flag_value} (total selected: {total_selected})")
+        total_selected = np.sum(self.node_flag > 0)
+        print(f"Set {np.sum(inside)} nodes to flag {flag_value} (total selected: {total_selected})")
 
 #%%
 if __name__ == "__main__":
-    voxel, neighbor_id_2d, Delta, voxel_for_each_vertex, vertex_for_each_voxel, vertex, face, vertex_flag = codes.processing.prepare_geometry.execute(data_path)
-    vertex_color = np.ones((len(vertex_flag), 3))  # shape (11, 3), all ones
-    selector = MeshSelector(vertex, face, data_path, vertex_flag, vertex_color)
+    script_dir = os.path.dirname(os.path.abspath(__file__)) # get the path of the current script
+    os.chdir(script_dir) # change the working directory
+
+    load_data_flag = 1 # 1: from PyHeartSim. 2: from SPH-HeartSim
+    if load_data_flag == 1: # load simulation data from PyHeartSim
+        voxel, neighbor_id_2d, Delta, voxel_for_each_vertex, vertex_for_each_voxel, vertex, face, vertex_flag = codes.processing.prepare_geometry.execute(data_path)
+        node = vertex 
+        node_flag = vertex_flag
+    elif load_data_flag == 2: # load simulation data from SPH-HeartSim
+        data_path = "../build/sim/bin/output/"
+        t, voltage, gate_variable, stress, xyz = codes.load_simulation_result.execute(data_path)
+        # t[time_id]
+        # voltage[nodes, time_steps]
+        # stress[nodes, time_steps]
+        # xyz[nodes, time_steps, coordinates]
+        node = xyz[:,0,:] # node coordinates at time 0
+
+        if os.path.exists(data_path + 'node_flag.npy'): # file exist
+            node_flag = np.load(data_path + 'node_flag.npy')
+        else: # file do not exist
+            node_flag = np.zeros(len(node), dtype=int)
+
+    # print out the pacing sites
+    np.set_printoptions(threshold=np.inf) # disable summarization, print out all elements
+    s1_pacing_node_id = np.where(node_flag == 1)[0]
+    print('s1 pacing nodes: ')
+    print(", ".join(map(str, s1_pacing_node_id))) # "," in between elements
+    s2_pacing_node_id = np.where(node_flag == 2)[0]
+    print('s2 pacing nodes: ')
+    print(", ".join(map(str, s2_pacing_node_id))) # "," in between elements
+
+    selector = MeshSelector(node, node_flag, data_path)
 
 # %%

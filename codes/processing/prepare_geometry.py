@@ -18,8 +18,8 @@ def execute(data_path):
     vertex = mat_data['data']['geometry'][0,0]['edited'][0,0]['vertex'][0,0] # xyz coordinates of each vertex
     face = mat_data['data']['geometry'][0,0]['edited'][0,0]['face'][0,0].astype(np.int32) -1 # -1 is to convert Matlab 1-based index to Python 0-based index
 
-    if os.path.exists(data_path + 'vertex_flag.npy'): # file exist
-        vertex_flag = np.load(data_path + 'vertex_flag.npy')
+    if os.path.exists(data_path + 'node_flag.npy'): # file exist
+        vertex_flag = np.load(data_path + 'node_flag.npy')
     else: # file do not exist
         vertex_flag = np.zeros(len(vertex), dtype=int)
 
