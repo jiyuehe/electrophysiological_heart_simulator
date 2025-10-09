@@ -1,106 +1,95 @@
 # %%
-# load libraries
-# --------------------------------------------------
 import codes
-import os, sys
-import numpy as np
-import matplotlib.pyplot as plt
+import os
+from pathlib import Path
+import numpy as np # pip install numpy
+import matplotlib.pyplot as plt # pip install matplotlib
 import plotly.graph_objects as go # pip install plotly. For 3D interactive plot: triangular mesh, and activation movie
 import plotly.io as pio
-pio.renderers.default = "browser" # simulation result mesh display in internet browser
+pio.renderers.default = "browser" # simulation result display in internet browser
 
 script_dir = os.path.dirname(os.path.abspath(__file__)) # get the path of the current script
 os.chdir(script_dir) # change the working directory
+script_dir = Path(script_dir)
 
 # %% 
-# load the .mat data file
+# load geometry data file
 # --------------------------------------------------
-data_path = script_dir + "/data/"
-voxel, neighbor_id_2d, Delta, voxel_for_each_vertex, vertex_for_each_voxel, vertex, face, vertex_flag = codes.processing.prepare_geometry.execute(data_path)
-voxel_flag = vertex_flag[vertex_for_each_voxel]
+data_path = script_dir / 'data'
+output = codes.load_geometry_data.execute(data_path)
+voxel = output['voxel']
+neighbor_id_2d = output['neighbor_id_2d']
+Delta = output['Delta']
+voxel_for_each_vertex = output['voxel_for_each_vertex']
+vertex_for_each_voxel = output['vertex_for_each_voxel']
+vertex = output['vertex']
+face = output['face']
+n_voxel = voxel.shape[0] 
 
 # %% 
 # simulation parameters
 # --------------------------------------------------
 dt = 0.05 # ms. if dt is not small enough, simulation will result nan. Generally, if c <= 1.0, can use dt = 0.05
-t_final = 800 # ms. NOTE: need to be at least long enough to have two pacings (pacing_cycle_length), or cannot compute phase from action potential
-pacing_start_time = 1 # ms
+t_final = 800 # ms. NOTE: need to be at least long enough to have two pacings (pacing_cycle_length), or cannot compute activation phase
+pacing_start_time = 0 # ms
 pacing_cycle_length = 250 # ms
 rotor_flag = 1 # 0: focal arrhythmia. 1: rotor arrhythmia via s1-s2 pacing
-model_flag = 1 # 1: Mitchell-Schaeffer, 2: Aliev–Panfilov
 compute_electrogram_flag = 0 # 1: compute electrogram. 0: do not compute electrogram
 
-# parameters of the heart model
-n_voxel = voxel.shape[0] 
-if model_flag == 1: # Mitchell-Schaeffer
-    c = 1 # diffusion coefficient. c = 1 is good for atrium
-    v_gate = 0.13
-    heart_model_parameter = {
-        'tau_in_voxel': np.ones(n_voxel) * 0.3,
-        'tau_out_voxel': np.ones(n_voxel) * 6,
-        'tau_open_voxel': np.ones(n_voxel) * 120,
-        'tau_close_voxel': np.ones(n_voxel) * 80,
-        'c_voxel': c * np.ones(n_voxel),
-        'v_gate_voxel': np.ones(n_voxel) * v_gate
-    }
-elif model_flag == 2: # Aliev–Panfilov
-    c = 0.1 # diffusion coefficient
-    v_gate = 0.13
-    heart_model_parameter = {
-        'c_voxel': c * np.ones(n_voxel),
-        'v_gate_voxel': np.ones(n_voxel) * v_gate
-    }
+# Mitchell-Schaeffer heart model parameters
+c = 1 # diffusion coefficient
+v_gate = 0.13
+heart_model_parameter = {
+    'tau_in_voxel': np.ones(n_voxel) * 0.3,
+    'tau_out_voxel': np.ones(n_voxel) * 6,
+    'tau_open_voxel': np.ones(n_voxel) * 120,
+    'tau_close_voxel': np.ones(n_voxel) * 80,
+    'c_voxel': c * np.ones(n_voxel),
+    'v_gate_voxel': np.ones(n_voxel) * v_gate
+}
 
 # %% 
 # compute simulation
 # --------------------------------------------------
 electrode_id = [0, 5000, 10000] # electrode locations for computing electrograms
 
-do_flag = 1 # 1: compute, 0: load existing result
-if do_flag == 1:
-    # fiber orientations
-    D0 = codes.simulation.fibers.execute(n_voxel)
+# fiber orientations
+D0 = codes.simulation.fibers.execute(n_voxel)
 
-    # compute heart model equation parts
-    P_2d = codes.compute_equation_parts.execute(n_voxel, D0, neighbor_id_2d, heart_model_parameter, model_flag)
+# compute heart model equation parts
+P_2d = codes.compute_equation_parts.execute(n_voxel, D0, neighbor_id_2d, heart_model_parameter)
 
-    # rotor arrhythmia parameters
-    rotor_parameters = {
-        "s1_pacing_voxel_id": 23403, # location of s1 pacing site
-        "s1_t": 0, # ms. time of s1 pacing
-        "s1_s2_delta_t": 205 / dt, # ms. time interval between s1 and s2
-        "ap_min": 0.004, # a threshold value of action potential 
-        "ap_max": 0.030, # a threshold value of action potential 
-        "h_min": 0.200, # a threshold value of gating variable
-        "h_max": 0.300, # a threshold value of gating variable
-        "s2_region_size_factor": 0.5 # a less than 1 multiplication factor to reduce s2 pacing region size
-    }
+# rotor arrhythmia parameters
+rotor_parameters = {
+    "s1_pacing_voxel_id": 23403, # location of s1 pacing site
+    "s1_t": 0, # ms. time of s1 pacing
+    "s1_s2_delta_t": 205 / dt, # ms. time interval between s1 and s2
+    "ap_min": 0.004, # a threshold value of action potential 
+    "ap_max": 0.030, # a threshold value of action potential 
+    "h_min": 0.200, # a threshold value of gating variable
+    "h_max": 0.300, # a threshold value of gating variable
+    "s2_region_size_factor": 0.5 # a less than 1 multiplication factor to reduce s2 pacing region size
+}
 
-    # compute simulation
-    action_potential, h = codes.compute_simulation.execute_CPU_parallel(neighbor_id_2d, voxel_flag, n_voxel, dt, t_final, P_2d, Delta, model_flag, rotor_flag, rotor_parameters)
-    np.save('result/action_potential.npy', action_potential)
-    np.save('result/h.npy', h)
+# compute simulation
+action_potential, h = codes.compute_simulation.execute_CPU_parallel(neighbor_id_2d, voxel_flag, n_voxel, dt, t_final, P_2d, Delta, model_flag, rotor_flag, rotor_parameters)
+np.save('result/action_potential.npy', action_potential)
+np.save('result/h.npy', h)
 
-    # compute unipolar electrogram
-    if compute_electrogram_flag == 1:
-        electrode_xyz = voxel[electrode_id, :]
-        electrogram_unipolar = codes.compute_unipolar_electrogram.execute_CPU_parallel(electrode_xyz, voxel, D0, heart_model_parameter['c_voxel'], action_potential, Delta, neighbor_id_2d)
-        np.save('result/electrogram_unipolar.npy', electrogram_unipolar)
+# compute unipolar electrogram
+if compute_electrogram_flag == 1:
+    electrode_xyz = voxel[electrode_id, :]
+    electrogram_unipolar = codes.compute_unipolar_electrogram.execute_CPU_parallel(electrode_xyz, voxel, D0, heart_model_parameter['c_voxel'], action_potential, Delta, neighbor_id_2d)
+    np.save('result/electrogram_unipolar.npy', electrogram_unipolar)
 
-    # create phase from action potential
-    action_potential_phase = np.zeros_like(action_potential)
-    activation_phase = np.zeros_like(action_potential)
-    for id in range(action_potential.shape[0]):
-        if ((id+1) % (action_potential.shape[0]//5)) == 0:
-            print(f'compute phase {(id+1)/action_potential.shape[0]*100:.1f}%')
-        action_potential_phase[id,:], activation_phase[id,:] = codes.create_phase.execute(action_potential[id,:], v_gate)
-    np.save('result/action_potential_phase.npy', action_potential_phase)
-elif do_flag == 0:
-    action_potential = np.load('result/action_potential.npy')
-    h = np.load('result/h.npy')
-    if compute_electrogram_flag == 1:
-        electrogram_unipolar = np.load('result/electrogram_unipolar.npy')
-    action_potential_phase = np.load('result/action_potential_phase.npy')
+# create phase from action potential
+action_potential_phase = np.zeros_like(action_potential)
+activation_phase = np.zeros_like(action_potential)
+for id in range(action_potential.shape[0]):
+    if ((id+1) % (action_potential.shape[0]//5)) == 0:
+        print(f'compute phase {(id+1)/action_potential.shape[0]*100:.1f}%')
+    action_potential_phase[id,:], activation_phase[id,:] = codes.create_phase.execute(action_potential[id,:], v_gate)
+np.save('result/action_potential_phase.npy', action_potential_phase)
 
 #%%
 # display result
