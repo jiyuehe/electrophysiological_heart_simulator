@@ -1,4 +1,4 @@
-This is an electrophysiological heart simulator based on Mitchell-Schaeffer equations. Written in Python. It can reproduce patient-specific arrhythmias.  
+This is an electrophysiological heart simulator capable of modeling patient-specific focal and rotor arrhythmias. It computes action potentials and electrograms and is implemented in Python.
 
 An example of arrhythmia simulation:  
 <img src="result/0_demo/s1s2_rotor.gif" alt="Demo" width="400" />  
