@@ -3,8 +3,5 @@ This is an electrophysiological heart simulator capable of modeling patient-spec
 An example of arrhythmia simulation:  
 <img src="result/0_demo/s1s2_rotor.gif" alt="Demo" width="400" />  
 
-Examples of simulated action potential:  
-<img src="result/0_demo/action_potential.png" alt="Demo" width="400" />  
-
-Examples of simulated electrogram:  
-<img src="result/0_demo/unipolar_electrogram.png" alt="Demo" width="400" />  
+Examples of simulated action potential and electrogram:  
+<img src="result/0_demo/AP_and_EGM.png" alt="Demo" width="400" />  
