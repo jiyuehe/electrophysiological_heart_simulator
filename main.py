@@ -30,7 +30,7 @@ n_voxel = voxel.shape[0]
 # simulation parameters
 # --------------------------------------------------
 dt = 0.05 # ms. if dt is not small enough, simulation will result nan. Generally, if c <= 1.0, can use dt = 0.05
-t_final = 600 # ms. NOTE: need to be at least long enough to have two pacings (pacing_cycle_length), or cannot compute activation phase
+t_final = 1000 # ms. NOTE: need to be at least long enough to have two pacings (pacing_cycle_length), or cannot compute activation phase
 pacing_start_time = 0 # ms
 pacing_cycle_length = 250 # ms
 rotor_flag = 1 # 0: focal arrhythmia. 1: rotor arrhythmia via s1-s2 pacing
@@ -58,7 +58,7 @@ rotor_parameters = {
     "ap_max": 0.030, # a threshold value of action potential 
     "h_min": 0.200, # a threshold value of gating variable
     "h_max": 0.300, # a threshold value of gating variable
-    "s2_region_size_factor": 0.4 # a less than 1 multiplication factor to reduce s2 pacing region size
+    "s2_region_size_factor": 0.5 # a less than 1 multiplication factor to reduce s2 pacing region size
 }
 
 # %% 
@@ -94,24 +94,33 @@ if compute_electrogram_flag == 1:
 # display result
 # --------------------------------------------------
 debug_plot = 1
-if debug_plot == 1:
-    # action potential
-    plt.figure()
-    plt.plot(action_potential[electrode_id, :].T)
-    plt.xlabel('Time (ms)')
-    plt.ylabel('Voltage (scaled)')
-    plt.title('examples of simulated action potential')
-    plt.savefig('result/action_potential.png')
+if debug_plot == 1: # show some action potentials and electrograms
+    fig, axes = plt.subplots(
+        nrows=3, ncols=2, figsize=(12, 8), sharex='col', sharey=False
+    )
 
-    # unipolar electrogram
-    plt.figure()
-    # e_id = 0
-    # plt.plot(electrogram_unipolar[e_id,:], 'b')
-    plt.plot(electrogram_unipolar.T)
-    plt.xlabel('Time (ms)')
-    plt.ylabel('Voltage (scaled)')
-    plt.title('examples of simulated unipolar electrogram')
-    plt.savefig('result/unipolar_electrogram.png')
+    for i, eid in enumerate(electrode_id):
+        # left column: action potentials
+        axes[i, 0].plot(action_potential[eid, :])
+        axes[i, 0].set_title(f'Action Potential at Location {eid}')
+        axes[i, 0].set_ylabel('Voltage (scaled)')
+        axes[i, 0].set_xlabel('Time (ms)')
+
+        # right column: unipolar electrograms
+        axes[i, 1].plot(electrogram_unipolar[i, :])
+        axes[i, 1].set_title(f'Unipolar Electrogram at Location {electrode_id[i]}')
+        axes[i, 1].set_ylabel('Voltage (scaled)')
+        axes[i, 1].set_xlabel('Time (ms)')
+
+    plt.tight_layout()
+    plt.savefig('result/AP_and_EGM.png', dpi=300)
+    plt.show()
+
+
+
+
+
+
 
     # # action potential phase, for activation movie display
     # voxel_id = 2000
@@ -122,6 +131,8 @@ if debug_plot == 1:
     # plt.plot(ap_phase, 'g')
 
     plt.show()
+
+os._exit(0) # ensures the kernel dies. or even after the visual studio code is closed, there will still be heavy python process in CPU cause computer to heat up.
 
 # # activation phase movie using matplotlib, with option to save as mp4
 # do_flag = 1
@@ -197,5 +208,4 @@ if debug_plot == 1:
 #     )
 #     fig.show()
 
-os._exit(0) # ensures the kernel dies. or even after the visual studio code is closed, there will still be heavy python process in CPU cause computer to heat up.
 #%%
