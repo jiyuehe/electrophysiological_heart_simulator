@@ -81,20 +81,12 @@ if compute_electrogram_flag == 1:
     electrogram_unipolar = codes.compute_unipolar_electrogram.execute_CPU_parallel(electrode_xyz, voxel, D0, heart_model_parameter['c_voxel'], action_potential, Delta, neighbor_id_2d)
     np.save('result/electrogram_unipolar.npy', electrogram_unipolar)
 
-# # create phase from action potential
-# action_potential_phase = np.zeros_like(action_potential)
-# activation_phase = np.zeros_like(action_potential)
-# for id in range(action_potential.shape[0]):
-#     if ((id+1) % (action_potential.shape[0]//5)) == 0:
-#         print(f'compute phase {(id+1)/action_potential.shape[0]*100:.1f}%')
-#     action_potential_phase[id,:], activation_phase[id,:] = codes.create_phase.execute(action_potential[id,:], v_gate)
-# np.save('result/action_potential_phase.npy', action_potential_phase)
-
 #%%
 # display result
 # --------------------------------------------------
 debug_plot = 1
-if debug_plot == 1: # show some action potentials and electrograms
+if debug_plot == 1: 
+    # show some action potentials and electrograms
     fig, axes = plt.subplots(
         nrows=3, ncols=2, figsize=(12, 8), sharex='col', sharey=False
     )
@@ -116,96 +108,6 @@ if debug_plot == 1: # show some action potentials and electrograms
     plt.savefig('result/AP_and_EGM.png', dpi=300)
     plt.show()
 
-
-
-
-
-
-
-    # # action potential phase, for activation movie display
-    # voxel_id = 2000
-    # ap = action_potential[voxel_id,:]
-    # ap_phase = action_potential_phase[voxel_id,:]
-    # plt.figure()
-    # plt.plot(ap, 'b')
-    # plt.plot(ap_phase, 'g')
-
-    plt.show()
-
 os._exit(0) # ensures the kernel dies. or even after the visual studio code is closed, there will still be heavy python process in CPU cause computer to heat up.
-
-# # activation phase movie using matplotlib, with option to save as mp4
-# do_flag = 1
-# if do_flag == 1: 
-#     save_flag = 0 # 1: save movie as mp4. 0: do not save movie
-#     starting_time = 190 # 0 # ms
-#     ending_time = 400 # t_final # ms
-#     movie_data = action_potential_phase[voxel_for_each_vertex, starting_time:ending_time] # display on vertices
-#     # movie_data = action_potential_phase[:, starting_time:] # display on voxels
-#     codes.display_activation_movie.execute_on_voxel_save_as_mp4(save_flag, movie_data, vertex)
-
-# # activation activation movie display using plotly, display using a browser, has a time frame slider
-# # NOTE: if data is too large, it will not display. for example, 1000 ms simulation will display only a blank page
-# do_flag = 0
-# if do_flag == 1:
-#     option = 1 # 1: display on mesh. 2: display on voxle
-
-#     if option == 1:
-#         movie_data = action_potential_phase[voxel_for_each_vertex,:] # grab vertex data
-#     elif option == 2:
-#         time_range = range(0,50) # range(start, stop) generates numbers from start up to (but not including) stop.
-#         movie_data = action_potential_phase[:,time_range] # if data is too large, will not display, thus trim the data
-    
-#     data_min = np.min(movie_data)
-#     data_max = np.max(movie_data)
-#     data_threshold = data_min
-#     map_color = {}
-#     n_time = movie_data.shape[1]
-#     for n in range(n_time):
-#         if (n % (n_time//5)) == 0:
-#             print(f'compute color map {n/n_time*100:.1f}%')
-#         data = movie_data[:, n]
-#         color = codes.convert_data_to_color.execute(data, data_min, data_max, data_threshold)
-#         map_color[n] = color
-
-#     if option == 1:
-#         codes.display_activation_movie.execute_on_mesh(vertex, face, map_color)
-#     elif option == 2:
-#         codes.display_activation_movie.execute_on_volume(voxel, map_color)
-
-# debug_plot = 0
-# if debug_plot == 1: # local activation time map
-#     # compute local activation time map
-#     action_potential_mesh = action_potential[voxel_for_each_vertex,:]
-#     t_start = 380
-#     cycle_length_percentage = 1 # use a number <1 when at a time instance, multiple cycles overlap
-#     lat, cl = codes.calculate_local_activation_time.execute_on_action_potential(t_start, action_potential_mesh, v_gate, cycle_length_percentage)
-#     # lat.shape = (number of mesh vertices,). 
-#     # cl.shape = (n x number of mesh vertices, ) where n depends on how many cycle length is there in the action potential
-
-#     debug_plot = 0
-#     if debug_plot == 1: # cycle length histogram
-#         plt.figure()
-#         plt.hist(cl, bins=10)
-#         plt.xlabel('cycle length, ms')
-#         plt.ylabel('counts')
-#         plt.title('cycle length histogram')
-#         plt.show()
-
-#     # convert local activation time into color
-#     data = lat
-#     data_min = np.nanmin(data)
-#     data_max = np.nanmax(data)
-#     data_threshold = data_min-0.1 # a little small than data_min, so that places with value of data_min will have color
-#     color = codes.convert_data_to_color.execute(data, data_min, data_max, data_threshold)
-#     fig = go.Figure(
-#         data = [
-#             go.Mesh3d(
-#                 x = vertex[:, 0], y = vertex[:, 1], z = vertex[:, 2],
-#                 i = face[:, 0], j = face[:, 1], k = face[:, 2],
-#                 vertexcolor = color)
-#         ]
-#     )
-#     fig.show()
 
 #%%
