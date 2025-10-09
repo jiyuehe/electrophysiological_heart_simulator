@@ -26,7 +26,7 @@ dt = 0.05 # ms. if dt is not small enough, simulation will result nan. Generally
 t_final = 800 # ms. NOTE: need to be at least long enough to have two pacings (pacing_cycle_length), or cannot compute phase from action potential
 pacing_start_time = 1 # ms
 pacing_cycle_length = 250 # ms
-rotor_flag = 0 # 0: focal arrhythmia. 1: rotor arrhythmia via s1-s2 pacing
+rotor_flag = 1 # 0: focal arrhythmia. 1: rotor arrhythmia via s1-s2 pacing
 model_flag = 1 # 1: Mitchell-Schaeffer, 2: Aliev–Panfilov
 compute_electrogram_flag = 0 # 1: compute electrogram. 0: do not compute electrogram
 
@@ -69,10 +69,10 @@ if do_flag == 1:
         "s1_pacing_voxel_id": 23403, # location of s1 pacing site
         "s1_t": 0, # ms. time of s1 pacing
         "s1_s2_delta_t": 205 / dt, # ms. time interval between s1 and s2
-        "ap_min": 0.002, # a threshold value of action potential 
-        "ap_max": 0.026, # a threshold value of action potential 
-        "h_min": 0.222, # a threshold value of gating variable
-        "h_max": 0.335, # a threshold value of gating variable
+        "ap_min": 0.004, # a threshold value of action potential 
+        "ap_max": 0.030, # a threshold value of action potential 
+        "h_min": 0.200, # a threshold value of gating variable
+        "h_max": 0.300, # a threshold value of gating variable
         "s2_region_size_factor": 0.5 # a less than 1 multiplication factor to reduce s2 pacing region size
     }
 
@@ -139,8 +139,8 @@ if debug_plot == 1:
 do_flag = 1
 if do_flag == 1: 
     save_flag = 0 # 1: save movie as mp4. 0: do not save movie
-    starting_time = 0 # ms
-    ending_time = t_final # ms
+    starting_time = 190 # 0 # ms
+    ending_time = 400 # t_final # ms
     movie_data = action_potential_phase[voxel_for_each_vertex, starting_time:ending_time] # display on vertices
     # movie_data = action_potential_phase[:, starting_time:] # display on voxels
     codes.display_activation_movie.execute_on_voxel_save_as_mp4(save_flag, movie_data, vertex)
