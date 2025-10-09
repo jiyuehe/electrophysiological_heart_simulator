@@ -4,7 +4,6 @@ import os
 from pathlib import Path
 import numpy as np # pip install numpy
 import matplotlib.pyplot as plt # pip install matplotlib
-import plotly.graph_objects as go # pip install plotly. For 3D interactive plot: triangular mesh, and activation movie
 import plotly.io as pio
 pio.renderers.default = "browser" # simulation result display in internet browser
 
