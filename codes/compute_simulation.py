@@ -4,7 +4,7 @@ from numba import njit, prange # pip install numba
 # CPU paralleled computation
 # --------------------------------------------------
 @njit(parallel=True)
-def compute_voxel(u_current, h_current, P_2d, neighbor_id_2d_2, J_stim, dt, Delta, model_flag):
+def compute_voxel(u_current, h_current, P_2d, neighbor_id_2d_2, J_stim, dt, Delta):
     n_voxel = u_current.shape[0]
     u_next = np.empty_like(u_current)
     h_next = np.empty_like(h_current)
@@ -32,41 +32,27 @@ def compute_voxel(u_current, h_current, P_2d, neighbor_id_2d_2, J_stim, dt, Delt
         )
         
         # compute the next time step value of u
-        if model_flag == 1:
-            u_next[n] = u_current[n] + dt * \
-            ( \
-                (h_current[n] * (u_current[n]**2) * (1 - u_current[n])) / P_2d[n, 17] - \
-                u_current[n] / P_2d[n, 18] + \
-                J_stim[n] + \
-                diffusion_term[n] \
-            )
+        u_next[n] = u_current[n] + dt * \
+        ( \
+            (h_current[n] * (u_current[n]**2) * (1 - u_current[n])) / P_2d[n, 17] - \
+            u_current[n] / P_2d[n, 18] + \
+            J_stim[n] + \
+            diffusion_term[n] \
+        )
 
-            # compute the next time step value of h
-            h_next_1 = ((1 - h_current[n]) / P_2d[n, 15]) * dt + h_current[n]
-            h_next_2 = (-h_current[n] / P_2d[n, 16]) * dt + h_current[n]
-            
-            if u_current[n] < P_2d[n, 19]:
-                h_next[n] = h_next_1
-            elif u_current[n] >= P_2d[n, 19]:
-                h_next[n] = h_next_2
-        elif model_flag == 2:
-            k = 8
-            a = 0.15
-            mu_1 = 0.2
-            mu_2 = 0.3
-            epsilon_0 = 0.002
-
-            u_next[n] = diffusion_term[n] - \
-                k * u_current[n] * (u_current[n] - a) * (u_current[n] - 1) - \
-                u_current[n] * h_current[n] + \
-                J_stim[n]
-            h_next[n] = (epsilon_0 + mu_1 * h_current[n] / (u_current[n] + mu_2)) * \
-                (-h_current[n] - k * u_current[n] * (u_current[n] - a - 1))
+        # compute the next time step value of h
+        h_next_1 = ((1 - h_current[n]) / P_2d[n, 15]) * dt + h_current[n]
+        h_next_2 = (-h_current[n] / P_2d[n, 16]) * dt + h_current[n]
+        
+        if u_current[n] < P_2d[n, 19]:
+            h_next[n] = h_next_1
+        elif u_current[n] >= P_2d[n, 19]:
+            h_next[n] = h_next_2
 
     return u_next, h_next
 
-def execute_CPU_parallel(neighbor_id_2d, voxel_flag, n_voxel, dt, t_final, P_2d, Delta, model_flag, rotor_flag, rotor_parameters):
-    # s1-s2 pacing parameters
+def execute_CPU_parallel(neighbor_id_2d, n_voxel, dt, t_final, P_2d, Delta, rotor_flag, rotor_parameters):
+    # pacing parameters
     s1_pacing_voxel_id = rotor_parameters["s1_pacing_voxel_id"] 
     s1_t = rotor_parameters["s1_t"] 
     s2_t = s1_t + rotor_parameters["s1_s2_delta_t"] 
@@ -75,21 +61,8 @@ def execute_CPU_parallel(neighbor_id_2d, voxel_flag, n_voxel, dt, t_final, P_2d,
     h_min = rotor_parameters["h_min"] 
     h_max = rotor_parameters["h_max"] 
     s2_region_size_factor = rotor_parameters["s2_region_size_factor"] 
-    
-    method_find_s2_pacing_sites = 2 # 1: use manually assigned s2 pacing sites. 2: automatically find out s2 pacing sites
 
-    if rotor_flag == 0:
-        s2_pacing_voxel_id = []
-    elif rotor_flag == 1:
-        if method_find_s2_pacing_sites == 1:
-            s1_pacing_voxel_id = np.where(voxel_flag == 1)[0]
-
-            s2_pacing_voxel_id = np.where(voxel_flag == 2)[0]
-            neighbor_id = neighbor_id_2d[s2_pacing_voxel_id, :] # add all the neighbors of the pacing voxel to be paced
-            neighbor_id = neighbor_id[neighbor_id != -1] # remove the -1s, which means no neighbors
-            s2_pacing_voxel_id = np.concatenate([s2_pacing_voxel_id, neighbor_id])
-            s2_pacing_voxel_id = np.unique(s2_pacing_voxel_id)
-
+    # s1 pacing location
     neighbor_id = neighbor_id_2d[s1_pacing_voxel_id, :] # add all the neighbors of the pacing voxel to be paced
     neighbor_id = neighbor_id[neighbor_id != -1] # remove the -1s, which means no neighbors
     if np.isscalar(s1_pacing_voxel_id): # if s1_pacing_voxel_id is just a number
@@ -98,13 +71,10 @@ def execute_CPU_parallel(neighbor_id_2d, voxel_flag, n_voxel, dt, t_final, P_2d,
     s1_pacing_voxel_id = np.unique(s1_pacing_voxel_id)
 
     # set initial value at rest
-    if model_flag == 1: # 1: Mitchell-Schaeffer, 2: Aliev–Panfilov
-        u_current = np.zeros(n_voxel)
-        h_current = np.ones(n_voxel)
-    elif model_flag == 2:
-        u_current = np.zeros(n_voxel)
-        h_current = np.zeros(n_voxel)
-    
+    u_current = np.zeros(n_voxel)
+    h_current = np.ones(n_voxel)
+
+    # initialize pacing stimulus
     J_stim = np.zeros(n_voxel)
 
     T = int(t_final/dt) # number of simulation time steps
@@ -115,14 +85,14 @@ def execute_CPU_parallel(neighbor_id_2d, voxel_flag, n_voxel, dt, t_final, P_2d,
 
     neighbor_id_2d_2 = neighbor_id_2d.copy() # NOTE: without .copy(), changes of neighbor_id_2d_2 will also change neighbor_id_2d
     neighbor_id_2d_2[neighbor_id_2d_2 == -1] = 0 # change -1 to 0, so that it can be used as index
-        # this does not matter because the corresponding P_2d will be 0, 
+        # this does not matter because the corresponding P_2d will be 0, and their product will be 0
         # so these terms will be eliminated anyway
 
     for t in range(T): 
         if ((t+1) % (T//5)) == 0:
             print(f'simulating {(t+1)/T*100:.1f}%')
 
-        J_stim.fill(0.0) # reset pacing values to 0s
+        J_stim.fill(0.0) # reset pacing stimulus values to 0s
         
         # s1 pacing
         if t >= s1_t and t <= s1_t + 10/dt: # 10/dt is 10 ms of pacing duration
@@ -130,31 +100,25 @@ def execute_CPU_parallel(neighbor_id_2d, voxel_flag, n_voxel, dt, t_final, P_2d,
 
         # s2 pacing
         if rotor_flag == 1 and t >= s2_t and t <= s2_t + 10 / dt: # 10/dt is 10 ms of pacing duration
-            if method_find_s2_pacing_sites == 2: # automatically find out s2 pacing sites
-                action_potential_s2_t = sim_u_voxel[:,int(s2_t*dt)-1] # -1: the current values are not saved yet, so check the previous time frame
-                h_s2_t = sim_h_voxel[:,int(s2_t*dt)-1] # -1: the current values are not saved yet, so check the previous time frame
+            action_potential_s2_t = sim_u_voxel[:,int(s2_t*dt)-1] # -1: the current values are not saved yet, so check the previous time frame
+            h_s2_t = sim_h_voxel[:,int(s2_t*dt)-1] # -1: the current values are not saved yet, so check the previous time frame
 
-                id1 = np.where((action_potential_s2_t >= ap_min) & (action_potential_s2_t <= ap_max))[0]
-                id2 = np.where((h_s2_t >= h_min) & (h_s2_t <= h_max))[0]
-                s2_pacing_voxel_id_auto = np.intersect1d(id1, id2) # these voxels could have a ring-like shape, which cannot generate rotor
+            id1 = np.where((action_potential_s2_t >= ap_min) & (action_potential_s2_t <= ap_max))[0]
+            id2 = np.where((h_s2_t >= h_min) & (h_s2_t <= h_max))[0]
+            s2_pacing_voxel_id_auto = np.intersect1d(id1, id2) # these voxels could have a ring-like shape, which cannot generate rotor
 
-                # grab a portion of the shape, so it becomes like a curvy patch (instead of a ring), so that waves can rotate at the edges of the patch
-                id = s2_pacing_voxel_id_auto[0] # find one voxel to start, pick a random one
-                while id.size < s2_pacing_voxel_id_auto.size * s2_region_size_factor: # repeat several times to include more neighbors
-                    neighbor_id = neighbor_id_2d[id, :] # add all the neighbors of the pacing voxel to be paced
-                    neighbor_id = neighbor_id[neighbor_id != -1] # remove the -1s, which means no neighbors
-                    id = np.concatenate([np.atleast_1d(id), np.atleast_1d(neighbor_id)]) # add the neighbors
-                    id = np.intersect1d(id, s2_pacing_voxel_id_auto) # make sure its within the original shape
+            # grab a portion of the shape, so it becomes like a curvy patch (instead of a ring), allow waves to rotate at the edges of the patch
+            id = s2_pacing_voxel_id_auto[0] # find one voxel to start, can be any random one
+            while id.size < s2_pacing_voxel_id_auto.size * s2_region_size_factor: # repeat several times to include more neighbors
+                neighbor_id = neighbor_id_2d[id, :] # the neighbors
+                neighbor_id = neighbor_id[neighbor_id != -1] # remove the -1s, which means no neighbors
+                id = np.concatenate([np.atleast_1d(id), np.atleast_1d(neighbor_id)]) # add the neighbors
+                id = np.intersect1d(id, s2_pacing_voxel_id_auto) # make sure its within the original shape
 
-                s2_pacing_voxel_id = id
-
-                # if t == s2_t:
-                #     np.set_printoptions(threshold=np.inf) # disable summarization, print out all elements
-                #     print(", ".join(map(str, s2_pacing_voxel_id))) # "," in between elements
-
+            s2_pacing_voxel_id = id
             J_stim[s2_pacing_voxel_id] = 20
 
-        u_next, h_next = compute_voxel(u_current, h_current, P_2d, neighbor_id_2d_2, J_stim, dt, Delta, model_flag)
+        u_next, h_next = compute_voxel(u_current, h_current, P_2d, neighbor_id_2d_2, J_stim, dt, Delta)
         
         # update value
         u_current = u_next
