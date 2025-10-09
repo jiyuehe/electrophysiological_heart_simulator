@@ -12,6 +12,3 @@ Examples of simulated electrogram:
 Examples of local activation time map:  
 <img src="result/0_demo/lat_focal.png" alt="Demo" width="400" />  
 <img src="result/0_demo/lat_rotor.png" alt="Demo" width="400" />  
-
-A user interface for assigning vertex flag  
-<img src="result/0_demo/ui_assign_vertex_flag.png" alt="Demo" width="400" />  
