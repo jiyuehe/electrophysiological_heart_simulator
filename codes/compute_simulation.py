@@ -120,13 +120,13 @@ def execute_CPU_parallel(neighbor_id_2d, n_voxel, dt, t_final, P_2d, Delta, roto
             J_stim[s2_pacing_voxel_id] = 20
 
         fibrillation_flag = 1
-        if fibrillation_flag == 1 and t == 300 / dt:
+        if fibrillation_flag == 1 and t == 400 / dt:
             # update heart model parameter in the middle of rotor arrhythmia to create fibrillations
             heart_model_parameter = {
                 'tau_in_voxel': np.ones(n_voxel) * 0.3, # tau_in
                 'tau_out_voxel': np.ones(n_voxel) * 6, # tau_out
-                'tau_open_voxel': np.ones(n_voxel) * 120, # tau_open
-                'tau_close_voxel': np.ones(n_voxel) * 120, # tau_close
+                'tau_open_voxel': np.ones(n_voxel) * 100, # tau_open
+                'tau_close_voxel': np.ones(n_voxel) * 100, # tau_close
             }
             P_2d[:, 15] = heart_model_parameter['tau_open_voxel']
             P_2d[:, 16] = heart_model_parameter['tau_close_voxel']
