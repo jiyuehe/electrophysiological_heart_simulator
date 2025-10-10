@@ -71,14 +71,11 @@ P_2d = codes.compute_equation_part.execute(n_voxel, D0, neighbor_id_2d, heart_mo
 
 # solve differential equations
 action_potential, h = codes.compute_simulation.execute_CPU_parallel(neighbor_id_2d, n_voxel, dt, t_final, P_2d, Delta, rotor_flag, rotor_parameters)
-np.save('result/action_potential.npy', action_potential)
-np.save('result/h.npy', h)
 
 # compute unipolar electrogram
 if compute_electrogram_flag == 1:
     electrode_xyz = voxel[electrode_id, :]
     electrogram_unipolar = codes.compute_unipolar_electrogram.execute_CPU_parallel(electrode_xyz, voxel, D0, heart_model_parameter['c_voxel'], action_potential, Delta, neighbor_id_2d)
-    np.save('result/electrogram_unipolar.npy', electrogram_unipolar)
 
 #%%
 # display result
