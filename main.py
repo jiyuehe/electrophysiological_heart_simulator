@@ -33,7 +33,7 @@ t_final = 700 # ms. NOTE: need to be at least long enough to have two pacings (p
 pacing_start_time = 0 # ms
 pacing_cycle_length = 250 # ms
 rotor_flag = 1 # 0: focal arrhythmia. 1: rotor arrhythmia via s1-s2 pacing
-compute_electrogram_flag = 1 # 1: compute electrogram. 0: do not compute electrogram
+compute_electrogram_flag = 0 # 1: compute electrogram. 0: do not compute electrogram
 electrode_id = [0, 5000, 10000] # electrode locations for computing electrograms
 
 # Mitchell-Schaeffer heart model parameters
@@ -72,6 +72,10 @@ P_2d = codes.compute_equation_part.execute(n_voxel, D0, neighbor_id_2d, heart_mo
 # solve differential equations
 action_potential, h = codes.compute_simulation.execute_CPU_parallel(neighbor_id_2d, n_voxel, dt, t_final, P_2d, Delta, rotor_flag, rotor_parameters)
 
+# save simulation results
+np.save('result/action_potential.npy', action_potential)
+np.save('result/h.npy', h)
+
 # compute unipolar electrogram
 if compute_electrogram_flag == 1:
     electrode_xyz = voxel[electrode_id, :]
@@ -80,7 +84,7 @@ if compute_electrogram_flag == 1:
 #%%
 # display result
 # --------------------------------------------------
-debug_plot = 1
+debug_plot = 0
 if debug_plot == 1: 
     # show some action potentials and electrograms
     fig, axes = plt.subplots(
