@@ -1,3 +1,4 @@
+import codes
 import numpy as np
 from numba import njit, prange # pip install numba
 
@@ -117,6 +118,20 @@ def execute_CPU_parallel(neighbor_id_2d, n_voxel, dt, t_final, P_2d, Delta, roto
 
             s2_pacing_voxel_id = id
             J_stim[s2_pacing_voxel_id] = 20
+
+        fibrillation_flag = 1
+        if fibrillation_flag == 1 and t == 300 / dt:
+            # update heart model parameter in the middle of rotor arrhythmia to create fibrillations
+            heart_model_parameter = {
+                'tau_in_voxel': np.ones(n_voxel) * 0.3, # tau_in
+                'tau_out_voxel': np.ones(n_voxel) * 6, # tau_out
+                'tau_open_voxel': np.ones(n_voxel) * 120, # tau_open
+                'tau_close_voxel': np.ones(n_voxel) * 120, # tau_close
+            }
+            P_2d[:, 15] = heart_model_parameter['tau_open_voxel']
+            P_2d[:, 16] = heart_model_parameter['tau_close_voxel']
+            P_2d[:, 17] = heart_model_parameter['tau_in_voxel']
+            P_2d[:, 18] = heart_model_parameter['tau_out_voxel']
 
         u_next, h_next = compute_voxel(u_current, h_current, P_2d, neighbor_id_2d_2, J_stim, dt, Delta)
         

@@ -29,7 +29,7 @@ n_voxel = voxel.shape[0]
 # simulation parameters
 # --------------------------------------------------
 dt = 0.05 # ms. if dt is not small enough, simulation will result nan. Generally, if c <= 1.0, can use dt = 0.05
-t_final = 700 # ms. NOTE: need to be at least long enough to have two pacings (pacing_cycle_length), or cannot compute activation phase
+t_final = 2500 # ms. NOTE: need to be at least long enough to have two pacings (pacing_cycle_length), or cannot compute activation phase
 pacing_start_time = 0 # ms
 pacing_cycle_length = 250 # ms
 rotor_flag = 1 # 0: focal arrhythmia. 1: rotor arrhythmia via s1-s2 pacing
@@ -57,7 +57,7 @@ rotor_parameters = {
     "ap_max": 0.030, # a threshold value of action potential 
     "h_min": 0.200, # a threshold value of gating variable
     "h_max": 0.300, # a threshold value of gating variable
-    "s2_region_size_factor": 0.5 # a less than 1 multiplication factor to reduce s2 pacing region size
+    "s2_region_size_factor": 0.3 # a less than 1 multiplication factor to reduce s2 pacing region size
 }
 
 # %% 
