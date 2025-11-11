@@ -10,17 +10,17 @@
 # pip install numba
 
 # %%
-import codes
 import os
 from pathlib import Path
-import numpy as np # pip install numpy
-import matplotlib.pyplot as plt # pip install matplotlib
-import plotly.io as pio
-pio.renderers.default = "browser" # simulation result display in internet browser
-
 script_dir = os.path.dirname(os.path.abspath(__file__)) # get the path of the current script
 os.chdir(script_dir) # change the working directory
 script_dir = Path(script_dir)
+
+import codes
+import numpy as np 
+import matplotlib.pyplot as plt 
+import plotly.io as pio
+pio.renderers.default = "browser" 
 
 # %% 
 # load geometry data file

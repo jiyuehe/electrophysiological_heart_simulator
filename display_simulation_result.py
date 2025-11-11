@@ -6,7 +6,7 @@ os.chdir(script_dir) # change the working directory
 script_dir = Path(script_dir)
 
 import codes
-import numpy as np # pip install numpy
+import numpy as np
 
 #%%
 save_movie_flag = 0 # 1: save movie. 0: do not save movie
