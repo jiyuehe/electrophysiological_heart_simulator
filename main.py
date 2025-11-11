@@ -39,7 +39,7 @@ n_voxel = voxel.shape[0]
 # --------------------------------------------------
 dt = 0.05 # ms. if dt is not small enough, simulation will result nan. Generally, if c <= 1.0, can use dt = 0.05
 t_final = 1000 # ms. NOTE: need to be at least long enough to have two pacings (pacing_cycle_length), or cannot compute activation phase
-arrhythmia_flag = 0 # 0: focal arrhythmia. 1: rotor arrhythmia
+arrhythmia_flag = 1 # 0: focal arrhythmia. 1: rotor arrhythmia
 compute_electrogram_flag = 1 # 1: compute electrogram. 0: do not compute electrogram
 electrode_id = [0, 5000, 10000] # electrode locations for computing electrograms
 
@@ -58,15 +58,15 @@ heart_model_parameter = {
 # rotor arrhythmia parameters
 arrhythmia_parameters = {
     'pacing_start_time': 10, # ms
-    'pacing_cycle_length': 250, # ms
+    'pacing_cycle_length': 300, # ms
     "s1_pacing_voxel_id": 23403, # location of s1 pacing site
     "s1_t": 0, # ms. time of s1 pacing
-    "s1_s2_delta_t": 205 / dt, # ms. time interval between s1 and s2 pacing
-    "ap_min": 0.004, # a threshold value of action potential 
-    "ap_max": 0.030, # a threshold value of action potential 
-    "h_min": 0.200, # a threshold value of gating variable
-    "h_max": 0.300, # a threshold value of gating variable
-    "s2_region_size_factor": 0.8, # a less than 1 multiplication factor to reduce s2 pacing region size
+    "s1_s2_delta_t": 230, # ms. time interval between s1 and s2 pacing
+    "ap_min": 0.00038510505014280766, # a threshold value of action potential 
+    "ap_max": 0.07687293043769826, # a threshold value of action potential 
+    "h_min": 0.1623103413330824, # a threshold value of gating variable
+    "h_max": 0.39717038588499276, # a threshold value of gating variable
+    "s2_region_size_factor": 0.7, # a less than 1 multiplication factor to reduce s2 pacing region size
 }
 
 # %% 

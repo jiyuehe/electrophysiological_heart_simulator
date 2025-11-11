@@ -108,14 +108,14 @@ def execute_CPU_parallel(neighbor_id_2d, n_voxel, dt, t_final, P_2d, Delta, arrh
                 J_stim[s1_pacing_voxel_id] = J_stim_magnitude
 
         elif arrhythmia_flag != 0: # not focal arrhythmia, s1 pace only once
-            if t >= s1_t and t <= s1_t + pacing_duration:
+            if model_time >= s1_t and model_time <= s1_t + pacing_duration:
                 # print('s1 pacing')
                 J_stim[s1_pacing_voxel_id] = J_stim_magnitude
 
         # s2 pacing
         if arrhythmia_flag != 0 and model_time >= s2_t and model_time <= s2_t + pacing_duration: 
-            action_potential_s2_t = sim_u_voxel[:,int(s2_t*dt)-1] # -1: the current values are not saved yet, so check the previous time frame
-            h_s2_t = sim_h_voxel[:,int(s2_t*dt)-1] # -1: the current values are not saved yet, so check the previous time frame
+            action_potential_s2_t = sim_u_voxel[:,int(s2_t)-1] # -1: the current values are not saved yet, so check the previous time frame
+            h_s2_t = sim_h_voxel[:,int(s2_t)-1] # -1: the current values are not saved yet, so check the previous time frame
 
             id1 = np.where((action_potential_s2_t >= ap_min) & (action_potential_s2_t <= ap_max))[0]
             id2 = np.where((h_s2_t >= h_min) & (h_s2_t <= h_max))[0]
@@ -123,12 +123,14 @@ def execute_CPU_parallel(neighbor_id_2d, n_voxel, dt, t_final, P_2d, Delta, arrh
 
             # grab a portion of the shape, so it becomes like a curvy patch (instead of a ring), allow waves to rotate at the edges of the patch
             id = s2_pacing_voxel_id_auto[0] # find one voxel to start, can be any random one
-            while id.size < s2_pacing_voxel_id_auto.size * s2_region_size_factor: # repeat several times to include more neighbors
+            iter = 0
+            while (id.size < s2_pacing_voxel_id_auto.size * s2_region_size_factor or id.size < 1000) and iter <= 50: # repeat several times to include more neighbors
+                # NOTE: iter <= 10 is to prevent inifinte while loop that sometimes will happen
                 neighbor_id = neighbor_id_2d[id, :] # the neighbors
                 neighbor_id = neighbor_id[neighbor_id != -1] # remove the -1s, which means no neighbors
                 id = np.concatenate([np.atleast_1d(id), np.atleast_1d(neighbor_id)]) # add the neighbors
                 id = np.intersect1d(id, s2_pacing_voxel_id_auto) # make sure its within the original shape
-
+                iter = iter + 1
             s2_pacing_voxel_id = id
             J_stim[s2_pacing_voxel_id] = J_stim_magnitude
 

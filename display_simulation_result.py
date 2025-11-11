@@ -9,9 +9,9 @@ import codes
 import numpy as np
 
 #%%
-save_movie_flag = 1 # 1: save movie. 0: do not save movie
-starting_time = 0 # 0 # ms
-ending_time = 500 # ms
+save_movie_flag = 0 # 1: save movie. 0: do not save movie
+starting_time = 400 # 0 # ms
+ending_time = 600 # ms
 simulation_results_file_name = 'simulation_results.npz'
 
 # load geometry data file
