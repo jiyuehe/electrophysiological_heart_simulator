@@ -124,7 +124,7 @@ def execute_CPU_parallel(neighbor_id_2d, n_voxel, dt, t_final, P_2d, Delta, arrh
             # grab a portion of the shape, so it becomes like a curvy patch (instead of a ring), allow waves to rotate at the edges of the patch
             id = s2_pacing_voxel_id_auto[0] # find one voxel to start, can be any random one
             iter = 0
-            while (id.size < s2_pacing_voxel_id_auto.size * s2_region_size_factor or id.size < 1000) and iter <= 50: # repeat several times to include more neighbors
+            while (id.size < s2_pacing_voxel_id_auto.size * s2_region_size_factor or id.size < 1000) and iter <= 20: # repeat several times to include more neighbors
                 # NOTE: iter <= 10 is to prevent inifinte while loop that sometimes will happen
                 neighbor_id = neighbor_id_2d[id, :] # the neighbors
                 neighbor_id = neighbor_id[neighbor_id != -1] # remove the -1s, which means no neighbors
