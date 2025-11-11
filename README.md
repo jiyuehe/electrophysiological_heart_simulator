@@ -8,12 +8,6 @@ This is an electrophysiological heart simulator capable of modeling patient-spec
 - Run main.py for simulation.
 - Run display_simulation_results.py for visualizing the heart simulation
 
-# Python dependencies
-- pip install numpy
-- pip install matplotlib 
-- pip install scipy
-- pip install numba
-
 # Examples
 An example of arrhythmia simulation:  
 <img src="result/0_demo/s1s2_rotor.gif" alt="Demo" width="400" />  

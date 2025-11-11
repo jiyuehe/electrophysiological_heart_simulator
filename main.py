@@ -7,6 +7,7 @@
 # pip install matplotlib 
 # pip install scipy
 # pip install numba
+# pip install ffmpegwriter
 
 # %%
 import os

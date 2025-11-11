@@ -9,23 +9,14 @@ import codes
 import numpy as np
 
 #%%
-save_movie_flag = 0 # 1: save movie. 0: do not save movie
+save_movie_flag = 1 # 1: save movie. 0: do not save movie
 starting_time = 0 # 0 # ms
 ending_time = 500 # ms
-geometry_flag = 0 # 0: 2D sheet, 1: 3D slab, 2: patient 3D atrium
-simulation_results_file_name = 'simulation_results_0.npz'
+simulation_results_file_name = 'simulation_results.npz'
 
-# load data
-if geometry_flag == 0: # 2D sheet
-    file_name = script_dir.parent / 'data' / 'sheet.obj'
-elif geometry_flag == 1: # 3D slab
-    file_name = script_dir.parent / 'data' / 'slab.obj'
-elif geometry_flag == 2: # patient 3D atrium
-    file_name = script_dir.parent / 'data' / '49_2-LA_edited.obj'
-elif geometry_flag == 3: # long slab for computing conduction velocity
-    file_name = script_dir.parent / 'data' / 'long_slab.obj'
-
-loaded = np.load(str(file_name)[0:-4] + '.npz')
+# load geometry data file
+data_path = script_dir / 'data'
+loaded = codes.load_geometry_data.execute(data_path)
 geometry_data = {
     'voxel': loaded['voxel'],
     'neighbor_id_2d': loaded['neighbor_id_2d'],
@@ -40,16 +31,13 @@ vertex = geometry_data['vertex']
 face = geometry_data['face']
 voxel_for_each_vertex = geometry_data['voxel_for_each_vertex']
 
-if geometry_flag == 2:
-    node = geometry_data['voxel'][voxel_for_each_vertex,:]
-elif geometry_flag in [0, 1, 3]:
-    node = geometry_data['voxel']
+node = geometry_data['voxel']
 
 # simulation data
-result_dir = script_dir.parent / 'result'
+result_dir = script_dir / 'result'
 simulation_results = np.load(result_dir / simulation_results_file_name)
 action_potential = simulation_results['action_potential']
-t = simulation_results['physical_time']
+t = np.arange(action_potential.shape[1])
 
 start_id = np.argmin(np.abs(t - starting_time)) # find index of closest value
 end_id = np.argmin(np.abs(t - ending_time)) # find index of closest value
@@ -58,15 +46,11 @@ action_potential = action_potential[:,start_id:end_id]
 
 v_gate = 0.13
 
-#%%
-# activation phase movie using matplotlib, with option to save as mp4
+# activation phase movie using matplotlib, with option to save as gif
 do_flag = 1
 if do_flag == 1: 
-    if str(file_name)[-11:-4] == '_edited':
-        movie_data = action_potential[voxel_for_each_vertex, :] # display on vertices
-    elif str(file_name)[-8:-4] == 'slab' or str(file_name)[-9:-4] == 'sheet':
-        movie_data = action_potential
-    
+    movie_data = action_potential
+    geometry_flag = 2 # 3D atrium
     codes.display_activation_movie.execute_on_voxel_save_as_mp4(save_movie_flag, movie_data, node, t, geometry_flag)
 
 print('done')
