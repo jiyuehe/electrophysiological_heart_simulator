@@ -1,3 +1,13 @@
+# This code had been tested in MacOS and Ubuntu.
+# Use Visual Studio Code as the IDE to run this code.
+
+# Dependencies: 
+# pip install numpy
+# pip install matplotlib 
+# pip install plotly
+# pip install scipy
+# pip install numba
+
 # %%
 import codes
 import os
@@ -32,8 +42,8 @@ dt = 0.05 # ms. if dt is not small enough, simulation will result nan. Generally
 t_final = 2 * 1000 # ms. NOTE: need to be at least long enough to have two pacings (pacing_cycle_length), or cannot compute activation phase
 pacing_start_time = 0 # ms
 pacing_cycle_length = 250 # ms
-rotor_flag = 1 # 0: focal arrhythmia. 1: rotor arrhythmia via s1-s2 pacing
-compute_electrogram_flag = 0 # 1: compute electrogram. 0: do not compute electrogram
+rotor_flag = 0 # 0: focal arrhythmia. 1: rotor arrhythmia via s1-s2 pacing
+compute_electrogram_flag = 1 # 1: compute electrogram. 0: do not compute electrogram
 electrode_id = [0, 5000, 10000] # electrode locations for computing electrograms
 
 # Mitchell-Schaeffer heart model parameters
@@ -84,7 +94,7 @@ if compute_electrogram_flag == 1:
 #%%
 # display result
 # --------------------------------------------------
-debug_plot = 0
+debug_plot = 1
 if debug_plot == 1: 
     # show some action potentials and electrograms
     fig, axes = plt.subplots(
