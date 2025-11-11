@@ -5,7 +5,6 @@
 # Dependencies: 
 # pip install numpy
 # pip install matplotlib 
-# pip install plotly
 # pip install scipy
 # pip install numba
 
@@ -19,8 +18,6 @@ script_dir = Path(script_dir)
 import codes
 import numpy as np 
 import matplotlib.pyplot as plt 
-import plotly.io as pio
-pio.renderers.default = "browser" 
 
 # %% 
 # load geometry data file

@@ -11,7 +11,6 @@ This is an electrophysiological heart simulator capable of modeling patient-spec
 # Python dependencies
 - pip install numpy
 - pip install matplotlib 
-- pip install plotly
 - pip install scipy
 - pip install numba
 
