@@ -3,3 +3,5 @@ __pycache__/
 result/*.npy
 result/*.png
 result/*.mp4
+result/*.npz
+result/*.gif

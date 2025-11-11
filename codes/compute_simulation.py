@@ -1,6 +1,6 @@
 import codes
 import numpy as np
-from numba import njit, prange # pip install numba
+from numba import njit, prange
 
 # CPU paralleled computation
 # --------------------------------------------------
@@ -52,16 +52,16 @@ def compute_voxel(u_current, h_current, P_2d, neighbor_id_2d_2, J_stim, dt, Delt
 
     return u_next, h_next
 
-def execute_CPU_parallel(neighbor_id_2d, n_voxel, dt, t_final, P_2d, Delta, rotor_flag, rotor_parameters):
+def execute_CPU_parallel(neighbor_id_2d, n_voxel, dt, t_final, P_2d, Delta, arrhythmia_flag, arrhythmia_parameters):
     # pacing parameters
-    s1_pacing_voxel_id = rotor_parameters["s1_pacing_voxel_id"] 
-    s1_t = rotor_parameters["s1_t"] 
-    s2_t = s1_t + rotor_parameters["s1_s2_delta_t"] 
-    ap_min = rotor_parameters["ap_min"] 
-    ap_max = rotor_parameters["ap_max"] 
-    h_min = rotor_parameters["h_min"] 
-    h_max = rotor_parameters["h_max"] 
-    s2_region_size_factor = rotor_parameters["s2_region_size_factor"] 
+    s1_pacing_voxel_id = arrhythmia_parameters["s1_pacing_voxel_id"] 
+    s1_t = arrhythmia_parameters["s1_t"] 
+    s2_t = s1_t + arrhythmia_parameters["s1_s2_delta_t"] 
+    ap_min = arrhythmia_parameters["ap_min"] 
+    ap_max = arrhythmia_parameters["ap_max"] 
+    h_min = arrhythmia_parameters["h_min"] 
+    h_max = arrhythmia_parameters["h_max"] 
+    s2_region_size_factor = arrhythmia_parameters["s2_region_size_factor"] 
 
     # s1 pacing location
     neighbor_id = neighbor_id_2d[s1_pacing_voxel_id, :] # add all the neighbors of the pacing voxel to be paced
@@ -78,9 +78,6 @@ def execute_CPU_parallel(neighbor_id_2d, n_voxel, dt, t_final, P_2d, Delta, roto
     # initialize pacing stimulus
     J_stim = np.zeros(n_voxel)
 
-    T = int(t_final/dt) # number of simulation time steps
-    id_save = 0 # simulation time step is small, do not save all of them, save at 1 kHz as most surgical hardware (catheter electrodes)
-
     sim_u_voxel = np.zeros((n_voxel, t_final)) # sampling frequency at 1 kHz
     sim_h_voxel = np.zeros((n_voxel, t_final)) # sampling frequency at 1 kHz
 
@@ -89,18 +86,34 @@ def execute_CPU_parallel(neighbor_id_2d, n_voxel, dt, t_final, P_2d, Delta, roto
         # this does not matter because the corresponding P_2d will be 0, and their product will be 0
         # so these terms will be eliminated anyway
 
-    for t in range(T): 
-        if ((t+1) % (T//5)) == 0:
-            print(f'simulating {(t+1)/T*100:.1f}%')
-
-        J_stim.fill(0.0) # reset pacing stimulus values to 0s
+    J_stim_magnitude = 1
+    pacing_duration = 5 # ms
+    total_model_time_steps = int(t_final/dt) # number of simulation time steps
+    id_save = 0 # simulation time step is small, do not save all of them, save at 1 kHz as the catheter electrodes
+    for model_time_step in range(total_model_time_steps): 
+        if ((model_time_step+1) % (total_model_time_steps//5)) == 0:
+            print(f'simulating {(model_time_step+1)/total_model_time_steps*100:.1f}%')
         
+        model_time = model_time_step * dt
+
         # s1 pacing
-        if t >= s1_t and t <= s1_t + 10/dt: # 10/dt is 10 ms of pacing duration
-            J_stim[s1_pacing_voxel_id] = 20
+        J_stim.fill(0.0) # reset pacing stimulus values to 0s
+        if arrhythmia_flag == 0: # focal arrhythmia, s1 pace according to cycle length setting
+            t = model_time
+            while t - arrhythmia_parameters['pacing_start_time'] > arrhythmia_parameters['pacing_cycle_length']:
+                t = t - arrhythmia_parameters['pacing_cycle_length']
+
+            if t >= arrhythmia_parameters['pacing_start_time'] and t <= arrhythmia_parameters['pacing_start_time'] + pacing_duration:
+                # print('s1 pacing')
+                J_stim[s1_pacing_voxel_id] = J_stim_magnitude
+
+        elif arrhythmia_flag != 0: # not focal arrhythmia, s1 pace only once
+            if t >= s1_t and t <= s1_t + pacing_duration:
+                # print('s1 pacing')
+                J_stim[s1_pacing_voxel_id] = J_stim_magnitude
 
         # s2 pacing
-        if rotor_flag == 1 and t >= s2_t and t <= s2_t + 10 / dt: # 10/dt is 10 ms of pacing duration
+        if arrhythmia_flag != 0 and model_time >= s2_t and model_time <= s2_t + pacing_duration: 
             action_potential_s2_t = sim_u_voxel[:,int(s2_t*dt)-1] # -1: the current values are not saved yet, so check the previous time frame
             h_s2_t = sim_h_voxel[:,int(s2_t*dt)-1] # -1: the current values are not saved yet, so check the previous time frame
 
@@ -117,21 +130,7 @@ def execute_CPU_parallel(neighbor_id_2d, n_voxel, dt, t_final, P_2d, Delta, roto
                 id = np.intersect1d(id, s2_pacing_voxel_id_auto) # make sure its within the original shape
 
             s2_pacing_voxel_id = id
-            J_stim[s2_pacing_voxel_id] = 20
-
-        fibrillation_flag = 1
-        if fibrillation_flag == 1 and t == 400 / dt:
-            # update heart model parameter in the middle of rotor arrhythmia to create fibrillations
-            heart_model_parameter = {
-                'tau_in_voxel': np.ones(n_voxel) * 0.3, # tau_in
-                'tau_out_voxel': np.ones(n_voxel) * 6, # tau_out
-                'tau_open_voxel': np.ones(n_voxel) * 100, # tau_open
-                'tau_close_voxel': np.ones(n_voxel) * 100, # tau_close
-            }
-            P_2d[:, 15] = heart_model_parameter['tau_open_voxel']
-            P_2d[:, 16] = heart_model_parameter['tau_close_voxel']
-            P_2d[:, 17] = heart_model_parameter['tau_in_voxel']
-            P_2d[:, 18] = heart_model_parameter['tau_out_voxel']
+            J_stim[s2_pacing_voxel_id] = J_stim_magnitude
 
         u_next, h_next = compute_voxel(u_current, h_current, P_2d, neighbor_id_2d_2, J_stim, dt, Delta)
         
@@ -140,119 +139,10 @@ def execute_CPU_parallel(neighbor_id_2d, n_voxel, dt, t_final, P_2d, Delta, roto
         h_current = h_next
         
         # save value at 1 kHz
-        if (t % int(1/dt)) == 0:
+        number_of_steps_per_ms = int(1/dt)
+        if (model_time_step % number_of_steps_per_ms) == 0:
             sim_u_voxel[:, id_save] = u_current
             sim_h_voxel[:, id_save] = h_current
             id_save = id_save + 1
 
     return sim_u_voxel, sim_h_voxel
-
-'''
-# vectorized computation
-# --------------------------------------------------
-def execute_vectorized(neighbor_id_2d, pacing_voxel_id, n_voxel, dt, t_final, pacing_signal, P_2d, Delta, model_flag):
-    neighbor_id = neighbor_id_2d[pacing_voxel_id, :] # add all the neighbors of the pacing voxel to be paced
-    pacing_voxel_id = neighbor_id[neighbor_id != -1] # remove the -1s, which means no neighbors
-
-    # set initial value at rest
-    if model_flag == 1:
-        u_current = np.zeros(n_voxel)
-        h_current = np.ones(n_voxel)
-    elif model_flag == 2:
-        u_current = np.zeros(n_voxel)
-        h_current = np.zeros(n_voxel)
-
-    u_next = np.empty_like(u_current)
-    h_next = np.empty_like(h_current)
-    J_stim = np.zeros(n_voxel)
-    diffusion_term = np.zeros(n_voxel)
-
-    T = int(t_final/dt) # number of simulation time steps
-    id_save = 0
-
-    sim_u_voxel = np.zeros((n_voxel, t_final)) # sampling frequency at 1 kHz
-    sim_h_voxel = np.zeros((n_voxel, t_final)) # sampling frequency at 1 kHz
-
-    neighbor_id_2d_2 = neighbor_id_2d.copy() # NOTE: without .copy(), changes of neighbor_id_2d_2 will also change neighbor_id_2d
-    neighbor_id_2d_2[neighbor_id_2d_2 == -1] = 0 # change -1 to 0, so that it can be used as index
-        # this does not matter because the corresponding P_2d will be 0, 
-        # so these terms will be eliminated anyway
-
-    for t in range(T): 
-        do_flag = 1
-        if do_flag == 1 and (t % (T//10)) == 0:
-            print(f'simulating {t/T*100:.1f}%')
-        
-        J_stim.fill(0.0) # reset values to 0s
-        J_stim[pacing_voxel_id] = pacing_signal[t]
-
-        # compute diffusion term
-        diffusion_term = P_2d[:, 20] / (4*Delta**2) * \
-        ( \
-            P_2d[:, 0] * (u_current[neighbor_id_2d_2[:, 0]] - u_current) + \
-            P_2d[:, 1] * (u_current[neighbor_id_2d_2[:, 1]] - u_current) + \
-            P_2d[:, 2] * (u_current[neighbor_id_2d_2[:, 2]] - u_current) + \
-            P_2d[:, 3] * (u_current[neighbor_id_2d_2[:, 3]] - u_current) + \
-            P_2d[:, 4] * (u_current[neighbor_id_2d_2[:, 4]] - u_current) + \
-            P_2d[:, 5] * (u_current[neighbor_id_2d_2[:, 5]] - u_current) + \
-            P_2d[:, 6] * (u_current[neighbor_id_2d_2[:, 0]] - u_current[neighbor_id_2d_2[:, 1]]) + \
-            P_2d[:, 7] * (u_current[neighbor_id_2d_2[:, 2]] - u_current[neighbor_id_2d_2[:, 3]]) + \
-            P_2d[:, 8] * (u_current[neighbor_id_2d_2[:, 4]] - u_current[neighbor_id_2d_2[:, 5]]) + \
-            P_2d[:, 9] * (u_current[neighbor_id_2d_2[:, 6]] - u_current[neighbor_id_2d_2[:, 8]]) + \
-            P_2d[:, 10] * (u_current[neighbor_id_2d_2[:, 9]] - u_current[neighbor_id_2d_2[:, 7]]) + \
-            P_2d[:, 11] * (u_current[neighbor_id_2d_2[:, 14]] - u_current[neighbor_id_2d_2[:, 16]]) + \
-            P_2d[:, 12] * (u_current[neighbor_id_2d_2[:, 17]] - u_current[neighbor_id_2d_2[:, 15]]) + \
-            P_2d[:, 13] * (u_current[neighbor_id_2d_2[:, 10]] - u_current[neighbor_id_2d_2[:, 12]]) + \
-            P_2d[:, 14] * (u_current[neighbor_id_2d_2[:, 13]] - u_current[neighbor_id_2d_2[:, 11]]) \
-        )
-        diffusion_term = diffusion_term.flatten()
-        
-        # compute the next time step value of u        
-        if model_flag == 1:
-            u_next = u_current + dt * \
-            ( \
-                (h_current * (u_current**2) * (1 - u_current)) / P_2d[:, 17] - \
-                u_current / P_2d[:, 18] + \
-                J_stim + \
-                diffusion_term \
-            )
-            
-            # compute the next time step value of h
-            h_next_1 = ((1 - h_current) / P_2d[:, 15]) * dt + h_current
-            h_next_2 = (-h_current / P_2d[:, 16]) * dt + h_current
-            
-            id_1 = u_current < P_2d[:, 19]
-            id_2 = u_current >= P_2d[:, 19]
-            
-            h_next[id_1] = h_next_1[id_1]
-            h_next[id_2] = h_next_2[id_2]
-        elif model_flag == 2:
-            k = 1
-            a = 0.15
-            mu_1 = 0.2
-            mu_2 = 0.3
-            epsilon_0 = 0.002
-
-            u_next = diffusion_term - \
-                k * u_current * (u_current - a) * (u_current - 1) - \
-                u_current * h_current + \
-                J_stim
-            h_next = (epsilon_0 + mu_1 * h_current / (u_current + mu_2)) * \
-                (-h_current - k * u_current * (u_current - a - 1))
-            
-            if t>10:
-                print(t)
-                print(u_next)
-
-        # update value
-        u_current = u_next
-        h_current = h_next
-        
-        # save value at 1 kHz
-        if (t % int(1/dt)) == 0:
-            sim_u_voxel[:, id_save] = u_current
-            sim_h_voxel[:, id_save] = h_current
-            id_save = id_save + 1
-
-    return sim_u_voxel, sim_h_voxel
-'''

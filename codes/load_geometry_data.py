@@ -1,8 +1,8 @@
-import scipy.io # pip install scipy
-import numpy as np # pip install numpy
-import plotly.graph_objects as go # pip install plotly. For 3D interactive plot: triangular mesh, and activation movie
+import scipy.io
+import numpy as np
+import plotly.graph_objects as go
 import plotly.io as pio
-pio.renderers.default = "browser" # simulation result display in internet browser
+pio.renderers.default = "browser"
 
 def execute(data_path):
     geometry_data = scipy.io.loadmat(data_path / 'heart_example.mat')
