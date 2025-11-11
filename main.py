@@ -1,5 +1,6 @@
 # This code had been tested in MacOS and Ubuntu.
 # Use Visual Studio Code as the IDE to run this code.
+# Edit the "settings.json" file inside the hidden folder ".vscode" to your own python path.
 
 # Dependencies: 
 # pip install numpy
