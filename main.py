@@ -9,7 +9,7 @@
 # pip install numba
 # pip install ffmpegwriter
 
-# %%
+#%%
 import os
 from pathlib import Path
 script_dir = os.path.dirname(os.path.abspath(__file__)) # get the path of the current script
@@ -20,7 +20,7 @@ import codes
 import numpy as np 
 import matplotlib.pyplot as plt 
 
-# %% 
+#%% 
 # load geometry data file
 # --------------------------------------------------
 data_path = script_dir / 'data'
@@ -34,7 +34,7 @@ vertex = output['vertex']
 face = output['face']
 n_voxel = voxel.shape[0] 
 
-# %% 
+#%% 
 # simulation parameters
 # --------------------------------------------------
 dt = 0.05 # ms. if dt is not small enough, simulation will result nan. Generally, if c <= 1.0, can use dt = 0.05
@@ -69,7 +69,7 @@ arrhythmia_parameters = {
     "s2_region_size_factor": 0.7, # a less than 1 multiplication factor to reduce s2 pacing region size
 }
 
-# %% 
+#%% 
 # compute simulation
 # --------------------------------------------------
 # fiber orientations
